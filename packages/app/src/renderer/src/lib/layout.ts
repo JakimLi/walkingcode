@@ -23,8 +23,9 @@ import type { WCEntry, WCModel, WCNode } from './model.js'
 // header padding + font line heights + element row padding + borders. If you
 // change the Tailwind classes in ModuleNode, re-measure and update these so
 // module cards stay inside their band.
+const CHART_TOP_MARGIN = 48 // blank space above the first band, so its label is never flush against the viewport top
 const BAND_PADDING_Y = 36 // vertical gap between consecutive bands
-const BAND_LABEL_HEIGHT = 30 // space reserved at the top of a band for its label
+const BAND_LABEL_HEIGHT = 40 // space reserved at the top of a band for its label + description line
 const BAND_BOTTOM_PADDING = 16 // space below the modules, inside the band
 const BAND_SIDE_PADDING = 24 // band left/right inset (band x offset = 20; modules start at 20+24=44)
 const MODULES_LEFT = 44 // x where the first module starts (= band x 20 + side 24)
@@ -105,7 +106,7 @@ export function layout(model: WCModel): PositionedModel {
   }
 
   const rfNodes: Node[] = []
-  let y = 20
+  let y = CHART_TOP_MARGIN
   let maxWidth = 0
 
   // ---- layer bands ----

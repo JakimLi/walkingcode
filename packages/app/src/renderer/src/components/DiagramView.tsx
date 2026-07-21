@@ -68,7 +68,7 @@ function DiagramInner(props: DiagramViewProps): React.JSX.Element {
         nodesConnectable={false}
         elementsSelectable
         fitView
-        fitViewOptions={{ padding: 0.12, maxZoom: 1.1 }}
+        fitViewOptions={{ padding: 0.2, maxZoom: 1.0, minZoom: 0.4 }}
         minZoom={0.2}
         maxZoom={1.8}
         proOptions={{ hideAttribution: true }}
