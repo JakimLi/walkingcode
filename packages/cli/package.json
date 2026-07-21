@@ -1,0 +1,30 @@
+{
+  "name": "@walkingcode/cli",
+  "version": "0.1.0",
+  "description": "walkingcode CLI — launch/control the WalkingCode GUI and read comments.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "walkingcode": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@walkingcode/schema": "*",
+    "commander": "^12.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.0"
+  }
+}

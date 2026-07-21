@@ -1,0 +1,13 @@
+{
+  "name": "@walkingcode/skill",
+  "version": "0.1.0",
+  "description": "Agent skill for generating WalkingCode architecture description files.",
+  "license": "MIT",
+  "private": true,
+  "files": [
+    "SKILL.md",
+    "schema/**",
+    "examples/**",
+    "README.md"
+  ]
+}

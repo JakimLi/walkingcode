@@ -1,0 +1,215 @@
+{
+  "$schema": "walkingcode.layered.v1",
+  "kind": "layered",
+  "schemaVersion": "v1",
+  "repo": "../stubs/demo-shop",
+  "title": "Demo Shop — User Request Flow",
+  "description": "A 4-layer stack tracing GET /api/users from the web client down to the in-memory database. Each node links to the exact code that implements it; click a node to read that code alongside the diagram.",
+  "meta": {
+    "generatedBy": "hand-written",
+    "generatedAt": "2026-07-21T00:00:00.000Z",
+    "notes": "MVP example; references the stub repo under stubs/demo-shop."
+  },
+  "layers": [
+    {
+      "id": "ui",
+      "name": "UI Layer",
+      "order": 0,
+      "description": "Browser-side code that issues HTTP requests to the backend.",
+      "modules": [
+        {
+          "id": "web-client",
+          "name": "Web Client",
+          "description": "Thin fetch helpers used by React components.",
+          "location": { "file": "web-client/userApi.ts", "startLine": 1, "endLine": 31, "symbol": "userApi" },
+          "elements": [
+            {
+              "id": "fetchUsers",
+              "name": "fetchUsers()",
+              "kind": "function",
+              "description": "GET /api/users → list of users. Entry point of the flow.",
+              "location": { "file": "web-client/userApi.ts", "startLine": 14, "endLine": 21, "symbol": "fetchUsers" },
+              "tags": ["async", "entry-point"]
+            },
+            {
+              "id": "fetchUserById",
+              "name": "fetchUserById(id)",
+              "kind": "function",
+              "description": "GET /api/users/:id → one user.",
+              "location": { "file": "web-client/userApi.ts", "startLine": 25, "endLine": 31, "symbol": "fetchUserById" },
+              "tags": ["async"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "controller",
+      "name": "Controller Layer",
+      "order": 1,
+      "description": "HTTP handlers. Translates requests into service calls; owns status codes.",
+      "modules": [
+        {
+          "id": "UserController",
+          "name": "UserController",
+          "description": "Express-style controller for /api/users.",
+          "location": { "file": "server/controller/UserController.ts", "startLine": 7, "endLine": 27, "symbol": "UserController" },
+          "elements": [
+            {
+              "id": "listUsers",
+              "name": "listUsers(req,res)",
+              "kind": "method",
+              "description": "Handles GET /api/users — delegates to UserService.findAll().",
+              "location": { "file": "server/controller/UserController.ts", "startLine": 12, "endLine": 16, "symbol": "UserController.listUsers" },
+              "tags": ["http"]
+            },
+            {
+              "id": "getUser",
+              "name": "getUser(req,res)",
+              "kind": "method",
+              "description": "Handles GET /api/users/:id — 404 if not found.",
+              "location": { "file": "server/controller/UserController.ts", "startLine": 18, "endLine": 26, "symbol": "UserController.getUser" },
+              "tags": ["http"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "service",
+      "name": "Service Layer",
+      "order": 2,
+      "description": "Business logic. Orchestrates repository calls and applies domain rules.",
+      "modules": [
+        {
+          "id": "UserService",
+          "name": "UserService",
+          "description": "User business logic: loads rows and computes the isActive rule.",
+          "location": { "file": "server/service/UserService.ts", "startLine": 14, "endLine": 34, "symbol": "UserService" },
+          "elements": [
+            {
+              "id": "findAll",
+              "name": "findAll()",
+              "kind": "method",
+              "description": "Returns all users with the isActive flag applied.",
+              "location": { "file": "server/service/UserService.ts", "startLine": 18, "endLine": 22, "symbol": "UserService.findAll" },
+              "tags": ["async"]
+            },
+            {
+              "id": "findById",
+              "name": "findById(id)",
+              "kind": "method",
+              "description": "Returns one user by id, or null.",
+              "location": { "file": "server/service/UserService.ts", "startLine": 24, "endLine": 29, "symbol": "UserService.findById" },
+              "tags": ["async"]
+            },
+            {
+              "id": "computeActive",
+              "name": "computeActive(email)",
+              "kind": "method",
+              "description": "Business rule: @demo.dev emails are 'active'.",
+              "location": { "file": "server/service/UserService.ts", "startLine": 31, "endLine": 33, "symbol": "UserService.computeActive" },
+              "tags": ["private", "rule"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "repository",
+      "name": "Repository Layer",
+      "order": 3,
+      "description": "Data access. Talks to the database; returns raw rows.",
+      "modules": [
+        {
+          "id": "UserRepository",
+          "name": "UserRepository",
+          "description": "SQL-style data access over an in-memory table for the stub.",
+          "location": { "file": "server/repository/UserRepository.ts", "startLine": 18, "endLine": 29, "symbol": "UserRepository" },
+          "elements": [
+            {
+              "id": "selectAll",
+              "name": "selectAll()",
+              "kind": "method",
+              "description": "SELECT * FROM users.",
+              "location": { "file": "server/repository/UserRepository.ts", "startLine": 20, "endLine": 23, "symbol": "UserRepository.selectAll" },
+              "tags": ["async", "sql"]
+            },
+            {
+              "id": "selectById",
+              "name": "selectById(id)",
+              "kind": "method",
+              "description": "SELECT * FROM users WHERE id = ?.",
+              "location": { "file": "server/repository/UserRepository.ts", "startLine": 26, "endLine": 28, "symbol": "UserRepository.selectById" },
+              "tags": ["async", "sql"]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "externalNodes": [
+    {
+      "id": "postgres",
+      "name": "PostgreSQL (stubbed)",
+      "kind": "store",
+      "description": "The backing database. Stubbed as an in-memory array for this demo; no file to link.",
+      "tags": ["datastore"]
+    }
+  ],
+  "edges": [
+    {
+      "from": "ui/web-client/fetchUsers",
+      "to": "controller/UserController/listUsers",
+      "label": "GET /api/users",
+      "kind": "call",
+      "description": "Browser issues an HTTP request to the controller."
+    },
+    {
+      "from": "controller/UserController/listUsers",
+      "to": "service/UserService/findAll",
+      "label": "findAll()",
+      "kind": "call",
+      "description": "Controller delegates listing to the service."
+    },
+    {
+      "from": "service/UserService/findAll",
+      "to": "repository/UserRepository/selectAll",
+      "label": "selectAll()",
+      "kind": "call",
+      "description": "Service loads rows from the repository."
+    },
+    {
+      "from": "repository/UserRepository/selectAll",
+      "to": "postgres",
+      "label": "SELECT * FROM users",
+      "kind": "data",
+      "description": "Repository queries the database (stubbed in-memory)."
+    },
+    {
+      "from": "ui/web-client/fetchUserById",
+      "to": "controller/UserController/getUser",
+      "label": "GET /api/users/:id",
+      "kind": "call"
+    },
+    {
+      "from": "controller/UserController/getUser",
+      "to": "service/UserService/findById",
+      "label": "findById(id)",
+      "kind": "call"
+    },
+    {
+      "from": "service/UserService/findById",
+      "to": "repository/UserRepository/selectById",
+      "label": "selectById(id)",
+      "kind": "call"
+    },
+    {
+      "from": "service/UserService/findAll",
+      "to": "service/UserService/computeActive",
+      "label": "applies rule",
+      "kind": "uses",
+      "description": "findAll maps each row through computeActive to set isActive."
+    }
+  ]
+}

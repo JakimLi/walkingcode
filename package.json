@@ -1,0 +1,22 @@
+{
+  "name": "walkingcode",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Walk an architecture diagram and the code behind it, side by side.",
+  "license": "MIT",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run -ws --if-present build",
+    "build:schema": "npm run build -w @walkingcode/schema",
+    "build:cli": "npm run build -w @walkingcode/cli",
+    "build:app": "npm run build -w @walkingcode/app",
+    "cli": "node packages/cli/dist/index.js",
+    "dev": "npm run dev -w @walkingcode/app",
+    "validate": "node packages/cli/dist/index.js validate examples/layered-arch.json"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
