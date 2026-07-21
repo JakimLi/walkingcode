@@ -37,7 +37,10 @@ log(`cwd: ${process.cwd()}`)
 const DEV_SERVER_URL = process.env.ELECTRON_RENDERER_URL ?? null
 
 function createWindow(): BrowserWindow {
-  const win = new BrowserWindow({
+  // Build options as a plain object (with the runtime-only option) and pass it
+  // in — TS doesn't excess-property-check a widened object the way it does a
+  // literal, and the option is real at the Electron runtime.
+  const opts: Electron.BrowserWindowConstructorOptions = {
     width: 1440,
     height: 900,
     minWidth: 960,
@@ -47,14 +50,17 @@ function createWindow(): BrowserWindow {
     backgroundColor: '#0a0c10',
     title: 'WalkingCode',
     show: false, // show on 'ready-to-show' to avoid a white flash
-    visibleOnAllWorkspaces: true, // guard against macOS Spaces hiding the window
     webPreferences: {
       preload: join(__dirname, '../preload/index.mjs'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,
     },
-  })
+  }
+  // visibleOnAllWorkspaces guards against macOS Spaces hiding the window.
+  // Cast because the installed @types/electron is slightly behind.
+  ;(opts as Record<string, unknown>).visibleOnAllWorkspaces = true
+  const win = new BrowserWindow(opts)
   let shown = false
   const showIt = (reason: string): void => {
     if (shown) return

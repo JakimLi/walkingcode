@@ -18,13 +18,24 @@
 import type { Edge, Node } from '@xyflow/react'
 import type { WCEntry, WCModel, WCNode } from './model.js'
 
-// Visual constants (px)
-const BAND_PADDING_Y = 40
-const BAND_LABEL_HEIGHT = 28
+// Visual constants (px).
+// These are calibrated to match the rendered DOM in ModuleNode/BandNode —
+// header padding + font line heights + element row padding + borders. If you
+// change the Tailwind classes in ModuleNode, re-measure and update these so
+// module cards stay inside their band.
+const BAND_PADDING_Y = 36 // vertical gap between consecutive bands
+const BAND_LABEL_HEIGHT = 30 // space reserved at the top of a band for its label
+const BAND_BOTTOM_PADDING = 16 // space below the modules, inside the band
+const BAND_SIDE_PADDING = 24 // band left/right inset (band x offset = 20; modules start at 20+24=44)
+const MODULES_LEFT = 44 // x where the first module starts (= band x 20 + side 24)
 const MODULE_WIDTH = 230
-const MODULE_GAP_X = 48
+const MODULE_GAP_X = 40
 const MODULE_MIN_HEIGHT = 96
-const ELEMENT_ROW_HEIGHT = 26
+// Measured module header (px-3 pt-2 pb-1.5 + name row + file path row + border):
+const MODULE_HEADER_HEIGHT = 50
+// Measured element row (px-3 py-1 + text-[12px] line + list py-1 amortised):
+const ELEMENT_ROW_HEIGHT = 28
+const MODULE_BORDER = 2 // top + bottom border on the module card
 const EXTERNAL_BAND_ID = '__external__'
 
 export interface PositionedModel {
@@ -103,22 +114,25 @@ export function layout(model: WCModel): PositionedModel {
     if (!layer) continue
     const mods = modulesByLayer.get(layerId) ?? []
 
-    // compute band height from the tallest module's element list
+    // Compute each module's height from its element count, calibrated against
+    // the real rendered DOM (header + rows + border). The band must be tall
+    // enough to contain the TALLEST module + the label + bottom padding.
     const bandModules = mods.map((m) => {
       const els = elementsByModule.get(m.id) ?? []
       const height = Math.max(
         MODULE_MIN_HEIGHT,
-        56 /* header + module meta */ + els.length * ELEMENT_ROW_HEIGHT
+        MODULE_HEADER_HEIGHT + els.length * ELEMENT_ROW_HEIGHT + MODULE_BORDER
       )
       return { mod: m, els, height }
     })
 
-    const bandHeight = bandModules.length
-      ? Math.max(...bandModules.map((b) => b.height)) + BAND_LABEL_HEIGHT
-      : MODULE_MIN_HEIGHT + BAND_LABEL_HEIGHT
+    const tallestModule = bandModules.length
+      ? Math.max(...bandModules.map((b) => b.height))
+      : MODULE_MIN_HEIGHT
+    const bandHeight = BAND_LABEL_HEIGHT + tallestModule + BAND_BOTTOM_PADDING
 
-    // position modules in a row
-    let x = 40
+    // Position modules in a row, starting at MODULES_LEFT.
+    let x = MODULES_LEFT
     for (const { mod, els, height } of bandModules) {
       rfNodes.push({
         id: mod.id,
@@ -130,12 +144,16 @@ export function layout(model: WCModel): PositionedModel {
       })
       x += MODULE_WIDTH + MODULE_GAP_X
     }
-    const rowWidth = bandModules.length
-      ? 40 + bandModules.length * MODULE_WIDTH + (bandModules.length - 1) * MODULE_GAP_X + 40
-      : 200
+    // rowWidth spans from the band's left edge to the right edge of the last
+    // module, plus the symmetric right padding.
+    const modulesRight =
+      MODULES_LEFT + bandModules.length * MODULE_WIDTH + Math.max(0, bandModules.length - 1) * MODULE_GAP_X
+    const rowWidth = bandModules.length ? modulesRight + BAND_SIDE_PADDING : 200
     maxWidth = Math.max(maxWidth, rowWidth)
 
-    // layer band background node (rendered behind modules)
+    // layer band background node (rendered behind modules). Width is sized to
+    // exactly wrap the module row + side padding, height to wrap label +
+    // tallest module + bottom padding.
     rfNodes.unshift({
       id: `band:${layerId}`,
       type: 'wcBand',
@@ -143,7 +161,7 @@ export function layout(model: WCModel): PositionedModel {
       data: { wc: layer, bandHeight } as WCNodeData & { bandHeight: number },
       draggable: false,
       selectable: false,
-      width: Math.max(rowWidth, 600) - 40,
+      width: rowWidth,
       height: bandHeight,
       zIndex: -1,
     })
@@ -153,8 +171,9 @@ export function layout(model: WCModel): PositionedModel {
 
   // ---- external band ----
   if (externals.length > 0) {
-    let x = 40
+    let x = MODULES_LEFT
     const bandTop = y
+    const externalWidth = 200
     const externalHeight = 80
     for (const ext of externals) {
       rfNodes.push({
@@ -162,12 +181,14 @@ export function layout(model: WCModel): PositionedModel {
         type: 'wcExternal',
         position: { x, y: bandTop + BAND_LABEL_HEIGHT },
         data: { wc: ext } as WCNodeData,
-        width: 200,
+        width: externalWidth,
         height: externalHeight,
       })
-      x += 200 + MODULE_GAP_X
+      x += externalWidth + MODULE_GAP_X
     }
-    const rowWidth = 40 + externals.length * 200 + (externals.length - 1) * MODULE_GAP_X + 40
+    const modulesRight =
+      MODULES_LEFT + externals.length * externalWidth + Math.max(0, externals.length - 1) * MODULE_GAP_X
+    const rowWidth = modulesRight + BAND_SIDE_PADDING
     maxWidth = Math.max(maxWidth, rowWidth)
 
     rfNodes.unshift({
@@ -176,15 +197,15 @@ export function layout(model: WCModel): PositionedModel {
       position: { x: 20, y: bandTop },
       data: {
         wc: { id: EXTERNAL_BAND_ID, kind: 'layer', name: 'External', order: 999 } as WCNode,
-        bandHeight: externalHeight + BAND_LABEL_HEIGHT,
+        bandHeight: externalHeight + BAND_LABEL_HEIGHT + BAND_BOTTOM_PADDING,
       } as WCNodeData & { bandHeight: number },
       draggable: false,
       selectable: false,
-      width: Math.max(rowWidth, 600) - 40,
-      height: externalHeight + BAND_LABEL_HEIGHT,
+      width: rowWidth,
+      height: externalHeight + BAND_LABEL_HEIGHT + BAND_BOTTOM_PADDING,
       zIndex: -1,
     })
-    y += externalHeight + BAND_LABEL_HEIGHT + BAND_PADDING_Y
+    y += externalHeight + BAND_LABEL_HEIGHT + BAND_BOTTOM_PADDING + BAND_PADDING_Y
   }
 
   // ---- edges (snapped to modules) ----

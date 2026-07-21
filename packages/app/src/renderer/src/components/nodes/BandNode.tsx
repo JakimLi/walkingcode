@@ -9,16 +9,17 @@ function BandImpl({ data, width, height }: NodeProps): React.JSX.Element {
   return (
     <div
       style={{ width, height }}
-      className="rounded-xl border border-ink-700/60 bg-ink-900/40 relative"
+      className="rounded-xl border border-ink-700/70 bg-ink-900/50 relative"
     >
-      <div className="absolute left-3 top-2 text-ink-400 text-xs uppercase tracking-wider font-medium">
-        {wc.name}
+      {/* layer label — sits in the reserved BAND_LABEL_HEIGHT strip at the top */}
+      <div className="absolute left-3 top-1.5 right-3 flex items-baseline gap-2">
+        <span className="text-ink-400 text-xs uppercase tracking-wider font-semibold">
+          {wc.name}
+        </span>
+        {wc.description ? (
+          <span className="text-ink-600 text-[10px] truncate">{wc.description}</span>
+        ) : null}
       </div>
-      {wc.description ? (
-        <div className="absolute left-3 bottom-2 text-ink-600 text-[10px] max-w-[60%] truncate">
-          {wc.description}
-        </div>
-      ) : null}
     </div>
   )
 }
