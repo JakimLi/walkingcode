@@ -15,6 +15,7 @@
  * clicks per-element. A future iteration can promote elements to real nodes
  * behind a "detailed" toggle.
  */
+import { MarkerType } from '@xyflow/react'
 import type { Edge, Node } from '@xyflow/react'
 import type { WCEntry, WCModel, WCNode } from './model.js'
 
@@ -216,17 +217,34 @@ export function layout(model: WCModel): PositionedModel {
     const to = resolveEndpoint(e.to, elementToModule, index)
     if (!from || !to) continue
     const id = `e:${e.from}->${e.to}`
+    const color = edgeColor(e.kind)
+    const lively = e.kind === 'call' || e.kind === 'data'
     rfEdges.push({
       id,
       source: from,
       target: to,
       label: e.label,
       type: 'smoothstep',
-      animated: e.kind === 'call' || e.kind === 'data',
-      labelStyle: { fontSize: 11, fill: '#7a8497' },
-      labelBgStyle: { fill: '#141821' },
-      style: { stroke: edgeColor(e.kind), strokeWidth: 1.5 },
+      // arrowhead matching the edge color so direction is always legible
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        width: 18,
+        height: 18,
+        color,
+      },
+      animated: lively,
+      labelStyle: { fontSize: 10, fill: '#aab3c4', fontWeight: 500 },
+      labelBgStyle: { fill: '#0b0d12' },
+      labelBgPadding: [3, 3] as [number, number],
+      labelBgBorderRadius: 4,
+      style: {
+        stroke: color,
+        strokeWidth: 1.5,
+        // a soft dash on non-animated edges so static links read as "structural"
+        strokeDasharray: lively ? undefined : '5 4',
+      },
       data: { kind: e.kind, description: e.description },
+      zIndex: 0,
     })
   }
 
@@ -241,12 +259,12 @@ export function layout(model: WCModel): PositionedModel {
 function edgeColor(kind?: string): string {
   switch (kind) {
     case 'call':
-      return '#5b8def'
+      return '#6ba0ff'
     case 'data':
-      return '#a78bfa'
+      return '#b794f6'
     case 'event':
-      return '#34d399'
+      return '#4ade80'
     default:
-      return '#3a4250'
+      return '#46505f'
   }
 }

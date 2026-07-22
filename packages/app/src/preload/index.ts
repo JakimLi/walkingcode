@@ -24,6 +24,14 @@ const api = {
     ipcRenderer.on(event, listener)
     return () => ipcRenderer.removeListener(event, listener)
   },
+  /** Platform info + frameless window controls (used by the custom title bar). */
+  platform: process.platform,
+  win: {
+    minimize: () => ipcRenderer.invoke('win:minimize'),
+    toggleMaximize: () => ipcRenderer.invoke('win:toggle-maximize'),
+    close: () => ipcRenderer.invoke('win:close'),
+    isMaximized: () => ipcRenderer.invoke('win:is-maximized'),
+  },
 }
 
 // The browser type is declared in renderer/src/types/preload.d.ts.

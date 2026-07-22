@@ -28,6 +28,7 @@ export function CommentsPanel({ selected, comments, onAdded, onResolve }: Commen
   }, [selected?.id])
 
   const mine = selected ? comments.filter((c) => c.nodeId === selected.id) : []
+  const openCount = mine.filter((c) => c.status !== 'resolved').length
 
   async function submit(): Promise<void> {
     if (!selected) return
@@ -48,20 +49,26 @@ export function CommentsPanel({ selected, comments, onAdded, onResolve }: Commen
   }
 
   return (
-    <div className="flex flex-col h-full bg-ink-850 border-l border-ink-700">
-      <div className="flex items-center justify-between px-3 h-9 border-b border-ink-700 bg-ink-850 shrink-0">
-        <span className="text-ink-400 text-xs">Comments</span>
-        <span className="text-ink-600 text-[11px]">{mine.length}</span>
+    <div className="flex flex-col h-full bg-ink-850/50 border-l border-ink-700/60">
+      <div className="flex items-center gap-2 px-3 h-9 border-b border-ink-700/60 bg-ink-850/50 shrink-0">
+        <span className="text-ink-500 text-[11px] uppercase tracking-wider font-semibold">Comments</span>
+        <span className="text-[10px] text-ink-400 font-mono px-1.5 py-0.5 rounded-full bg-ink-800 border border-ink-700">
+          {mine.length}
+        </span>
+        {openCount > 0 ? <span className="text-[10px] text-amber-300/80">{openCount} open</span> : null}
       </div>
 
-      <div className="px-3 py-2 border-b border-ink-700/60 shrink-0">
+      <div className="px-3 py-2.5 border-b border-ink-700/40 shrink-0">
         {selected ? (
           <div className="text-[11px]">
-            <div className="text-ink-200 font-medium truncate">{selected.name}</div>
-            <div className="text-ink-600 font-mono truncate">{selected.id}</div>
+            <div className="text-ink-200 font-medium truncate flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent shadow-[0_0_6px_rgba(107,160,255,0.6)]" />
+              {selected.name}
+            </div>
+            <div className="text-ink-500 font-mono truncate mt-0.5 pl-3.5">{selected.id}</div>
           </div>
         ) : (
-          <div className="text-ink-600 text-[11px]">Select a node to comment on it.</div>
+          <div className="text-ink-500 text-[11px]">Select a node to comment on it.</div>
         )}
       </div>
 
@@ -74,7 +81,7 @@ export function CommentsPanel({ selected, comments, onAdded, onResolve }: Commen
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="text-ink-600 text-[12px] italic"
+                className="text-ink-500 text-[12px] italic"
               >
                 No comments yet. Add the first below.
               </motion.div>
@@ -88,18 +95,21 @@ export function CommentsPanel({ selected, comments, onAdded, onResolve }: Commen
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
                 className={[
-                  'rounded-md border px-2.5 py-2 text-[12px]',
+                  'rounded-lg border px-2.5 py-2 text-[12px] transition-colors',
                   c.status === 'resolved'
-                    ? 'border-ink-700 bg-ink-900/50 opacity-70'
-                    : 'border-ink-700 bg-ink-900',
+                    ? 'border-ink-700/60 bg-ink-900/40 opacity-60'
+                    : 'border-ink-700 bg-ink-900/60',
                 ].join(' ')}
               >
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-ink-400">@{c.author}</span>
-                    {c.line ? <span className="text-ink-600 font-mono">:{c.line}</span> : null}
+                    <span className="h-3.5 w-3.5 rounded-full bg-gradient-to-br from-accent to-accent-soft flex items-center justify-center text-white text-[8px] font-bold">
+                      {c.author.slice(0, 1).toUpperCase()}
+                    </span>
+                    <span className="text-ink-400 text-[11px]">@{c.author}</span>
+                    {c.line ? <span className="text-ink-500 font-mono text-[10px]">:{c.line}</span> : null}
                     {c.status !== 'open' ? (
-                      <span className="text-[10px] uppercase tracking-wide text-emerald-300">
+                      <span className="text-[9px] uppercase tracking-wide text-emerald-300 font-semibold">
                         {c.status}
                       </span>
                     ) : null}
@@ -107,21 +117,21 @@ export function CommentsPanel({ selected, comments, onAdded, onResolve }: Commen
                   <button
                     type="button"
                     onClick={() => onResolve(c.id)}
-                    className="text-ink-600 hover:text-ink-200 text-[10px]"
+                    className="text-ink-500 hover:text-ink-200 text-[10px] transition-colors"
                     title={c.status === 'resolved' ? 'Reopen' : 'Resolve'}
                   >
                     {c.status === 'resolved' ? '↺ reopen' : '✓ resolve'}
                   </button>
                 </div>
                 <div className="text-ink-200 whitespace-pre-wrap break-words">{c.body}</div>
-                <div className="text-ink-600 text-[10px] mt-1">{fmtTime(c.createdAt)}</div>
+                <div className="text-ink-500 text-[10px] mt-1">{fmtTime(c.createdAt)}</div>
               </motion.div>
             ))
           )}
         </AnimatePresence>
       </div>
 
-      <div className="p-2 border-t border-ink-700 shrink-0">
+      <div className="p-2.5 border-t border-ink-700/60 shrink-0">
         <textarea
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
@@ -131,17 +141,17 @@ export function CommentsPanel({ selected, comments, onAdded, onResolve }: Commen
           disabled={!selected || submitting}
           placeholder={selected ? `Comment on ${selected.name}…  (⌘↵ to send)` : 'Select a node first'}
           rows={2}
-          className="w-full resize-none rounded-md bg-ink-900 border border-ink-700 px-2 py-1.5 text-[12px] text-ink-200 placeholder:text-ink-600 focus:outline-none focus:border-accent disabled:opacity-50"
+          className="wc-focus w-full resize-none rounded-lg bg-ink-900/80 border border-ink-700 px-2.5 py-2 text-[12px] text-ink-200 placeholder:text-ink-500 focus:border-accent focus:bg-ink-900 disabled:opacity-50 transition-colors"
         />
         <div className="flex items-center justify-between mt-1.5">
-          <span className="text-[10px] text-ink-600">
+          <span className="text-[10px] text-ink-500">
             {error ? <span className="text-red-400">{error}</span> : 'Saved to sidecar on send'}
           </span>
           <button
             type="button"
             onClick={() => void submit()}
             disabled={!selected || submitting || !draft.trim()}
-            className="text-[11px] px-2 py-1 rounded bg-accent text-white disabled:opacity-40 hover:brightness-110"
+            className="text-[11px] px-3 py-1 rounded-md bg-accent text-white font-medium disabled:opacity-40 disabled:cursor-not-allowed hover:brightness-110 active:scale-[0.98] transition-all shadow-[0_2px_8px_rgba(107,160,255,0.3)]"
           >
             {submitting ? 'Sending…' : 'Comment'}
           </button>

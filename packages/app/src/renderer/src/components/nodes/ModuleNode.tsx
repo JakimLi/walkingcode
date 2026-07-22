@@ -26,36 +26,41 @@ function ModuleImpl({ data, width, height, selected }: NodeProps): React.JSX.Ele
       transition={{ duration: 0.18 }}
       style={{ width, height }}
       className={[
-        'flex flex-col rounded-lg border bg-ink-850 overflow-hidden',
-        selected ? 'border-accent shadow-[0_0_0_1px_var(--tw-shadow-color)]' : 'border-ink-700',
+        'wc-node-surface group flex flex-col overflow-hidden rounded-xl border bg-ink-850/80 backdrop-blur-sm',
+        'border-white/[0.06] shadow-card transition-colors duration-150',
+        selected
+          ? 'border-accent/50'
+          : 'hover:border-white/[0.12]',
       ].join(' ')}
     >
-      <Handle type="target" position={Position.Top} className="!bg-ink-600 !w-2 !h-2 !border-0" />
+      <Handle type="target" position={Position.Top} className="!h-2 !w-2 !border-0 !bg-ink-600" />
 
-      {/* header */}
+      {/* header — keep height stable: pt-2 pb-1.5 matches MODULE_HEADER_HEIGHT */}
       <button
         type="button"
         onClick={() => clickable && onSelect(wc)}
         disabled={!clickable}
         className={[
-          'text-left px-3 pt-2 pb-1.5 border-b border-ink-700/70',
-          clickable ? 'hover:bg-ink-800 cursor-pointer' : 'cursor-default',
+          'text-left px-3 pt-2 pb-1.5 border-b border-white/[0.05]',
+          clickable ? 'cursor-pointer hover:bg-white/[0.03]' : 'cursor-default',
         ].join(' ')}
         title={wc.description ?? wc.name}
       >
         <div className="flex items-center gap-1.5">
-          <span className="text-ink-200 text-sm font-medium truncate">{wc.name}</span>
+          <span className="text-ink-100 text-[13px] font-semibold leading-tight truncate">
+            {wc.name}
+          </span>
           {moduleComments > 0 ? <CommentBadge count={moduleComments} /> : null}
         </div>
         {wc.location ? (
-          <div className="text-ink-600 text-[10px] font-mono truncate mt-0.5">{wc.location.file}</div>
+          <div className="text-ink-500 text-[10px] font-mono truncate mt-0.5">{wc.location.file}</div>
         ) : null}
       </button>
 
-      {/* element list */}
+      {/* element list — keep row height stable: py-1 matches ELEMENT_ROW_HEIGHT */}
       <div className="flex-1 overflow-hidden">
         {elements.length === 0 ? (
-          <div className="px-3 py-2 text-ink-600 text-[11px] italic">no elements</div>
+          <div className="px-3 py-2 text-ink-500 text-[11px] italic">no elements</div>
         ) : (
           <ul className="py-1">
             {elements.map((el) => {
@@ -69,18 +74,22 @@ function ModuleImpl({ data, width, height, selected }: NodeProps): React.JSX.Ele
                     disabled={!elClickable}
                     onClick={() => elClickable && onSelect(el)}
                     className={[
-                      'w-full text-left px-3 py-1 flex items-center gap-2 text-[12px] font-mono',
+                      'w-full text-left px-3 py-1 flex items-center gap-2 text-[12px] font-mono transition-colors',
                       isSel
-                        ? 'bg-accent/20 text-ink-200'
+                        ? 'bg-accent/15 text-ink-100'
                         : elClickable
-                          ? 'text-ink-200 hover:bg-ink-800'
-                          : 'text-ink-600 cursor-default',
+                          ? 'text-ink-300 hover:bg-white/[0.04] hover:text-ink-100'
+                          : 'text-ink-500 cursor-default',
                     ].join(' ')}
                     title={el.description ?? el.name}
                   >
                     <ElementKindIcon kind={el.subKind} />
                     <span className="truncate">{el.name}</span>
-                    {elComments > 0 ? <span className="ml-auto"><CommentBadge count={elComments} /></span> : null}
+                    {elComments > 0 ? (
+                      <span className="ml-auto">
+                        <CommentBadge count={elComments} />
+                      </span>
+                    ) : null}
                   </button>
                 </li>
               )
@@ -89,7 +98,7 @@ function ModuleImpl({ data, width, height, selected }: NodeProps): React.JSX.Ele
         )}
       </div>
 
-      <Handle type="source" position={Position.Bottom} className="!bg-ink-600 !w-2 !h-2 !border-0" />
+      <Handle type="source" position={Position.Bottom} className="!h-2 !w-2 !border-0 !bg-ink-600" />
     </motion.div>
   )
 }

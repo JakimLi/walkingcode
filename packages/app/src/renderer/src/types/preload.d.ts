@@ -42,6 +42,15 @@ export interface WCApi {
   }
   /** Listen for app-level events from main (e.g. a new file was opened). */
   on: (event: 'reload', cb: () => void) => () => void
+  /** The OS platform, e.g. 'darwin' | 'win32' | 'linux'. */
+  platform: string
+  /** Frameless window controls (used by the custom title bar). */
+  win: {
+    minimize: () => Promise<void>
+    toggleMaximize: () => Promise<void>
+    close: () => Promise<void>
+    isMaximized: () => Promise<boolean>
+  }
 }
 
 declare global {

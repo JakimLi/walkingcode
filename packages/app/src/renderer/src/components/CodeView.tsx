@@ -142,13 +142,29 @@ export function CodeView({ selected }: CodeViewProps): React.JSX.Element {
     monaco.editor.defineTheme('walkingcode-dark', {
       base: 'vs-dark',
       inherit: true,
-      rules: [],
+      rules: [
+        { token: 'comment', foreground: '525c6e', fontStyle: 'italic' },
+        { token: 'string', foreground: '9ece6a' },
+        { token: 'keyword', foreground: '6ba0ff' },
+        { token: 'number', foreground: 'ff9e64' },
+        { token: 'type', foreground: 'b794f6' },
+        { token: 'function', foreground: '7dcfff' },
+      ],
       colors: {
-        'editor.background': '#0f1218',
-        'editorGutter.background': '#0f1218',
-        'editor.lineHighlightBackground': '#141821',
-        'editorLineNumber.foreground': '#3a4250',
-        'editorLineNumber.activeForeground': '#7a8497',
+        'editor.background': '#0b0d12',
+        'editorGutter.background': '#0b0d12',
+        'editor.lineHighlightBackground': '#10131a',
+        'editorLineNumber.foreground': '#2a313d',
+        'editorLineNumber.activeForeground': '#8b95a7',
+        'editor.selectionBackground': '#1d3a6b',
+        'editor.inactiveSelectionBackground': '#16243f',
+        'editorCursor.foreground': '#6ba0ff',
+        'editorIndentGuide.background1': '#151922',
+        'editorIndentGuide.activeBackground1': '#2a313d',
+        'editorBracketMatch.background': '#1d3a6b55',
+        'editorBracketMatch.border': '#6ba0ff55',
+        'scrollbarSlider.background': '#2a313d80',
+        'scrollbarSlider.hoverBackground': '#3a4250aa',
       },
     })
     monaco.editor.setTheme('walkingcode-dark')
@@ -187,13 +203,14 @@ export function CodeView({ selected }: CodeViewProps): React.JSX.Element {
 
   return (
     <div className="flex flex-col h-full bg-ink-900">
-      <div className="flex items-center gap-2 px-3 h-9 border-b border-ink-700 bg-ink-850 shrink-0">
-        <span className="text-ink-400 text-xs">Code</span>
+      <div className="flex items-center gap-2 px-3 h-9 border-b border-ink-700/60 bg-ink-850/50 shrink-0">
+        <span className="text-ink-500 text-[11px] uppercase tracking-wider font-semibold">Code</span>
         {state.file ? (
-          <span className="text-ink-200 text-xs font-mono truncate">
+          <span className="flex items-center gap-1.5 text-ink-300 text-xs font-mono truncate">
+            <span className="text-ink-400">›</span>
             {state.file}
             {state.range ? (
-              <span className="text-ink-600 ml-1">
+              <span className="text-ink-500 ml-1">
                 :{state.range.startLineNumber}
                 {state.range.endLineNumber !== state.range.startLineNumber
                   ? `–${state.range.endLineNumber}`
@@ -207,16 +224,23 @@ export function CodeView({ selected }: CodeViewProps): React.JSX.Element {
         {!selected ? (
           <EmptyHint />
         ) : !selected.location ? (
-          <div className="p-4 text-ink-600 text-sm">
-            <div className="text-ink-400 text-sm mb-1 font-medium">{selected.name}</div>
-            <div>This node has no clickable code location.</div>
+          <div className="p-5 text-sm wc-fade-in">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-ink-300 font-medium">{selected.name}</span>
+            </div>
+            <div className="text-ink-500">This node has no clickable code location.</div>
           </div>
         ) : state.loading ? (
-          <div className="p-4 text-ink-600 text-sm">Loading {state.file}…</div>
+          <div className="p-5 text-ink-500 text-sm flex items-center gap-2.5 wc-fade-in">
+            <div className="h-3.5 w-3.5 rounded-full border-2 border-ink-700 border-t-accent animate-spin" />
+            Loading {state.file}…
+          </div>
         ) : state.error ? (
-          <div className="p-4 text-red-400 text-sm">
-            <div className="font-medium mb-1">Couldn’t read {state.file}</div>
-            <div className="text-ink-400">{state.error}</div>
+          <div className="p-5 text-sm wc-fade-in">
+            <div className="flex items-center gap-2 text-red-300 font-medium mb-1">
+              <span>Couldn’t read {state.file}</span>
+            </div>
+            <div className="text-ink-400 text-xs font-mono">{state.error}</div>
           </div>
         ) : (
           <Editor
@@ -248,9 +272,14 @@ export function CodeView({ selected }: CodeViewProps): React.JSX.Element {
 
 function EmptyHint(): React.JSX.Element {
   return (
-    <div className="p-4 text-ink-600 text-sm">
-      <div className="text-ink-400 font-medium mb-1">No code selected</div>
-      <div>Click a module or element in the diagram to read its code here.</div>
+    <div className="h-full flex flex-col items-center justify-center p-8 text-center wc-fade-in">
+      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-ink-850 ring-1 ring-inset ring-ink-700 mb-3">
+        <span className="text-ink-500 text-lg">‹/›</span>
+      </div>
+      <div className="text-ink-300 font-medium mb-1">No code selected</div>
+      <div className="text-ink-500 text-xs max-w-[200px]">
+        Click a module or element in the diagram to read its code here.
+      </div>
     </div>
   )
 }

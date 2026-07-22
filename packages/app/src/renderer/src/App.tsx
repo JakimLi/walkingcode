@@ -102,8 +102,9 @@ export default function App(): React.JSX.Element {
 
   if (!loaded) {
     return (
-      <div className="w-screen h-screen flex items-center justify-center text-ink-400 text-sm">
-        Loading…
+      <div className="w-screen h-screen flex flex-col items-center justify-center gap-3">
+        <div className="h-7 w-7 rounded-md border-2 border-ink-700 border-t-accent animate-spin" />
+        <div className="text-ink-400 text-sm">Loading…</div>
       </div>
     )
   }
@@ -111,17 +112,22 @@ export default function App(): React.JSX.Element {
   if (loaded.error || !loaded.doc) {
     return (
       <div className="w-screen h-screen flex flex-col items-center justify-center p-8">
-        <div className="text-red-400 font-medium mb-2">Couldn’t open the architecture file</div>
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-500/10 ring-1 ring-inset ring-red-500/30 mb-4">
+          <span className="text-red-400 text-xl">!</span>
+        </div>
+        <div className="text-red-300 font-medium mb-2">Couldn’t open the architecture file</div>
         <div className="text-ink-400 text-sm max-w-xl text-center">{loaded.error}</div>
         {loaded.archFile ? (
-          <div className="text-ink-600 text-xs font-mono mt-3">{loaded.archFile}</div>
+          <div className="text-ink-500 text-xs font-mono mt-3 px-2 py-1 rounded bg-ink-850 border border-ink-700">
+            {loaded.archFile}
+          </div>
         ) : null}
       </div>
     )
   }
 
   return (
-    <div className="w-screen h-screen flex flex-col overflow-hidden bg-ink-950">
+    <div className="w-screen h-screen flex flex-col overflow-hidden bg-ink-900">
       <Toolbar
         doc={loaded.doc}
         repo={loaded.repo}
@@ -131,7 +137,7 @@ export default function App(): React.JSX.Element {
         onReload={() => void reloadComments()}
       />
       <div className="flex-1 min-h-0 grid grid-cols-[1fr_minmax(420px,42%)_320px]">
-        <div className="relative min-w-0 border-r border-ink-700">
+        <div className="relative min-w-0 border-r border-ink-700/60">
           <DiagramView
             doc={loaded.doc}
             comments={comments}
@@ -156,7 +162,8 @@ export default function App(): React.JSX.Element {
 
 function StatusBar({ selectedId, selected }: { selectedId: string | null; selected: WCNode | null }): React.JSX.Element {
   return (
-    <div className="h-6 px-3 flex items-center gap-3 border-t border-ink-700 bg-ink-900 text-[11px] text-ink-600 shrink-0">
+    <div className="h-6 px-3 flex items-center gap-2.5 border-t border-ink-700/60 bg-ink-900/80 backdrop-blur-sm text-[11px] text-ink-500 shrink-0">
+      <span className="h-1.5 w-1.5 rounded-full bg-accent shadow-[0_0_6px_rgba(107,160,255,0.6)]" />
       <span className="font-mono">{selectedId ?? '—'}</span>
       {selected?.location ? (
         <>
@@ -168,7 +175,10 @@ function StatusBar({ selectedId, selected }: { selectedId: string | null; select
         </>
       ) : null}
       <span className="flex-1" />
-      <span>⌘↵ to post comment · click nodes to read code</span>
+      <span className="text-ink-500">
+        <kbd className="font-mono px-1 py-0.5 rounded bg-ink-800 border border-ink-700 text-ink-400">⌘↵</kbd>
+        <span className="ml-1.5">post comment · click nodes to read code</span>
+      </span>
     </div>
   )
 }

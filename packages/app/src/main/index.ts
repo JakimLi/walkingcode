@@ -9,7 +9,7 @@
  *
  * The CLI spawns us with:  electron <entry> <archFile> [--repo <path>]
  */
-import { app, BrowserWindow, shell, type RenderProcessGoneDetails } from 'electron'
+import { app, BrowserWindow, shell, ipcMain, type RenderProcessGoneDetails } from 'electron'
 import { existsSync, mkdirSync, appendFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { homedir } from 'node:os'
@@ -36,10 +36,34 @@ log(`cwd: ${process.cwd()}`)
 // Is the renderer served by vite dev? electron-vite sets process.env.ELECTRON_RENDERER_URL.
 const DEV_SERVER_URL = process.env.ELECTRON_RENDERER_URL ?? null
 
+/**
+ * Window-control IPC: the frameless toolbar's in-DOM buttons call these on
+ * Windows/Linux (macOS uses the native traffic lights). Also exposes the
+ * platform so the renderer knows whether to render its own caption buttons.
+ */
+function registerWindowControls(): void {
+  ipcMain.handle('win:minimize', () => {
+    BrowserWindow.getFocusedWindow()?.minimize()
+  })
+  ipcMain.handle('win:toggle-maximize', () => {
+    const win = BrowserWindow.getFocusedWindow()
+    if (!win) return
+    if (win.isMaximized()) win.unmaximize()
+    else win.maximize()
+  })
+  ipcMain.handle('win:close', () => {
+    BrowserWindow.getFocusedWindow()?.close()
+  })
+  ipcMain.handle('win:is-maximized', () => {
+    return BrowserWindow.getFocusedWindow()?.isMaximized() ?? false
+  })
+}
+
 function createWindow(): BrowserWindow {
   // Build options as a plain object (with the runtime-only option) and pass it
   // in — TS doesn't excess-property-check a widened object the way it does a
   // literal, and the option is real at the Electron runtime.
+  const isMac = process.platform === 'darwin'
   const opts: Electron.BrowserWindowConstructorOptions = {
     width: 1440,
     height: 900,
@@ -47,9 +71,21 @@ function createWindow(): BrowserWindow {
     minHeight: 600,
     x: 80,
     y: 80,
-    backgroundColor: '#0a0c10',
+    backgroundColor: '#08090c',
     title: 'WalkingCode',
     show: false, // show on 'ready-to-show' to avoid a white flash
+    // Frameless-ish: hide the native title bar. macOS keeps the traffic-light
+    // buttons via `hiddenInset` (inset + no title text); Windows/Linux use a
+    // native overlay (Electron ≥30) or our custom in-DOM controls in the toolbar.
+    titleBarStyle: isMac ? 'hiddenInset' : 'hidden',
+    titleBarOverlay: isMac
+      ? undefined
+      : {
+          color: '#0b0d12',
+          symbolColor: '#8b95a7',
+          height: 44,
+        },
+    trafficLightPosition: { x: 14, y: 15 },
     webPreferences: {
       preload: join(__dirname, '../preload/index.mjs'),
       contextIsolation: true,
@@ -130,6 +166,7 @@ if (!gotLock) {
     try {
       initSession({ archFile: args.archFile, repoOverride: args.repo })
       registerIpc(() => BrowserWindow.getFocusedWindow())
+      registerWindowControls()
       createWindow()
       log('createWindow returned')
     } catch (e) {
