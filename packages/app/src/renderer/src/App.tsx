@@ -17,6 +17,8 @@ import { Toolbar } from './components/Toolbar'
 import { DiagramView } from './components/DiagramView'
 import { CodeView } from './components/CodeView'
 import { CommentsPanel } from './components/CommentsPanel'
+import { PanelRail } from './components/PanelRail'
+import { CollapseButton } from './components/CollapseButton'
 
 interface Loaded {
   archFile: string | null
@@ -25,6 +27,47 @@ interface Loaded {
   warnings: ParseWarning[]
   /** Hard parse error message, if the document failed to load. */
   error: string | null
+}
+
+/** The three resizable/collapsible panes. */
+type PanelId = 'diagram' | 'code' | 'comments'
+/** Order matters: the first *visible* panel absorbs freed space (becomes 1fr). */
+const PANEL_ORDER: PanelId[] = ['diagram', 'code', 'comments']
+const PANELS_KEY = 'wc:panel-layout'
+
+/** Preferred width for each panel when it's not the absorb column. */
+const PANEL_PREF_WIDTH: Record<PanelId, string> = {
+  diagram: '1fr', // diagram is first → naturally the absorb column when visible
+  code: 'minmax(420px, 42%)',
+  comments: '320px',
+}
+const RAIL_WIDTH = '44px'
+
+/** Read persisted panel visibility from localStorage (default: all open). */
+function readPanels(): Record<PanelId, boolean> {
+  const fallback: Record<PanelId, boolean> = { diagram: true, code: true, comments: true }
+  try {
+    const raw = localStorage.getItem(PANELS_KEY)
+    if (!raw) return fallback
+    const parsed = JSON.parse(raw) as Partial<Record<PanelId, boolean>>
+    return { diagram: parsed.diagram ?? true, code: parsed.code ?? true, comments: parsed.comments ?? true }
+  } catch {
+    return fallback
+  }
+}
+
+/**
+ * Compute the CSS grid-template-columns from panel visibility.
+ * Collapsed → rail width. The first visible panel (in PANEL_ORDER) absorbs the
+ * freed space via 1fr; the rest keep their preferred widths.
+ */
+function gridCols(panels: Record<PanelId, boolean>): string {
+  const firstVisible = PANEL_ORDER.find((id) => panels[id]) ?? 'diagram'
+  return PANEL_ORDER.map((id) => {
+    if (!panels[id]) return RAIL_WIDTH
+    if (id === firstVisible) return '1fr'
+    return PANEL_PREF_WIDTH[id]
+  }).join(' ')
 }
 
 export default function App(): React.JSX.Element {
@@ -97,6 +140,31 @@ export default function App(): React.JSX.Element {
     return selected
   }, [selected])
 
+  // ---- panel collapse state ----
+  const [panels, setPanels] = useState<Record<PanelId, boolean>>(readPanels)
+
+  // persist whenever visibility changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(PANELS_KEY, JSON.stringify(panels))
+    } catch {
+      /* ignore quota / private-mode errors */
+    }
+  }, [panels])
+
+  const openCount = PANEL_ORDER.filter((id) => panels[id]).length
+
+  const togglePanel = useCallback((id: PanelId) => {
+    setPanels((prev) => {
+      // don't allow collapsing the last open panel
+      const open = PANEL_ORDER.filter((p) => prev[p]).length
+      if (prev[id] && open <= 1) return prev
+      return { ...prev, [id]: !prev[id] }
+    })
+  }, [])
+
+  const cols = useMemo(() => gridCols(panels), [panels])
+
   // expose code read types to the bundle so the import isn't dropped under TS
   void (null as unknown as CodeReadResult | CodeReadError)
 
@@ -136,24 +204,69 @@ export default function App(): React.JSX.Element {
         commentCount={comments.length}
         onReload={() => void reloadComments()}
       />
-      <div className="flex-1 min-h-0 grid grid-cols-[1fr_minmax(420px,42%)_320px]">
+      <div className="flex-1 min-h-0 grid" style={{ gridTemplateColumns: cols }}>
+        {/* ---- diagram (left) ---- */}
         <div className="relative min-w-0 border-r border-ink-700/60">
-          <DiagramView
-            doc={loaded.doc}
-            comments={comments}
-            selectedElementId={selectedElementId}
-            onSelect={onSelect}
-          />
+          {panels.diagram ? (
+            <>
+              <DiagramView
+                doc={loaded.doc}
+                comments={comments}
+                selectedElementId={selectedElementId}
+                onSelect={onSelect}
+              />
+              {/* floating collapse button — top-right of the diagram canvas */}
+              <div className="absolute top-2.5 right-3 z-10 app-no-drag">
+                <button
+                  type="button"
+                  onClick={() => togglePanel('diagram')}
+                  disabled={openCount <= 1}
+                  title={openCount <= 1 ? 'Keep at least one panel open' : 'Collapse diagram'}
+                  aria-label="Collapse diagram"
+                  className={[
+                    'flex h-6 w-6 items-center justify-center rounded-md transition-colors backdrop-blur-sm',
+                    openCount <= 1
+                      ? 'bg-ink-850/70 text-ink-700 cursor-not-allowed'
+                      : 'bg-ink-850/70 text-ink-500 hover:text-ink-100 hover:bg-ink-800 cursor-pointer',
+                  ].join(' ')}
+                >
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                    <path d="M8 3L4 6.5L8 10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              </div>
+            </>
+          ) : (
+            <PanelRail label="Diagram" chevron="right" onExpand={() => togglePanel('diagram')} />
+          )}
         </div>
+
+        {/* ---- code (middle) ---- */}
         <div className="min-w-0">
-          <CodeView selected={liveSelected} />
+          {panels.code ? (
+            <CodeView
+              selected={liveSelected}
+              onCollapse={() => togglePanel('code')}
+              canCollapse={openCount > 1}
+            />
+          ) : (
+            <PanelRail label="Code" chevron="right" onExpand={() => togglePanel('code')} />
+          )}
         </div>
-        <CommentsPanel
-          selected={liveSelected}
-          comments={comments}
-          onAdded={() => void reloadComments()}
-          onResolve={onResolve}
-        />
+
+        {/* ---- comments (right) ---- */}
+        {panels.comments ? (
+          <CommentsPanel
+            selected={liveSelected}
+            comments={comments}
+            onAdded={() => void reloadComments()}
+            onResolve={onResolve}
+            onCollapse={() => togglePanel('comments')}
+            canCollapse={openCount > 1}
+          />
+        ) : (
+          <PanelRail label="Comments" chevron="left" onExpand={() => togglePanel('comments')} />
+        )}
       </div>
       <StatusBar selectedId={selectedId} selected={liveSelected} />
     </div>

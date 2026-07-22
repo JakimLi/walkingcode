@@ -9,6 +9,7 @@ import Editor, { loader, type OnMount } from '@monaco-editor/react'
 import * as monacoEditor from 'monaco-editor'
 import type { editor as MonacoEditor, IRange } from 'monaco-editor'
 import type { WCNode } from '../lib/model.js'
+import { CollapseButton } from './CollapseButton.js'
 
 // Offline Monaco: hand the bundled ESM monaco instance to @monaco-editor/react
 // so it doesn't try to fetch from a CDN. Workers are configured below via the
@@ -47,6 +48,10 @@ loader.config({ monaco: monacoEditor })
 export interface CodeViewProps {
   /** Currently-selected node, or null if nothing selected. */
   selected: WCNode | null
+  /** Collapse this panel to a rail (called by the header chevron). */
+  onCollapse?: () => void
+  /** Whether collapse is allowed (disabled when it's the last open panel). */
+  canCollapse?: boolean
 }
 
 interface CodeState {
@@ -90,7 +95,7 @@ function detectLanguage(file: string): string {
   return LANGUAGE_BY_EXT[ext] ?? 'plaintext'
 }
 
-export function CodeView({ selected }: CodeViewProps): React.JSX.Element {
+export function CodeView({ selected, onCollapse, canCollapse = true }: CodeViewProps): React.JSX.Element {
   const [state, setState] = useState<CodeState>({
     loading: false,
     error: null,
@@ -219,6 +224,13 @@ export function CodeView({ selected }: CodeViewProps): React.JSX.Element {
             ) : null}
           </span>
         ) : null}
+        <div className="flex-1" />
+        <CollapseButton
+          onCollapse={onCollapse}
+          canCollapse={canCollapse}
+          chevron="right"
+          label="Collapse code panel"
+        />
       </div>
       <div className="flex-1 min-h-0 relative">
         {!selected ? (

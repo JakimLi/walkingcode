@@ -9,15 +9,27 @@ import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Comment } from '@wc-schema'
 import type { WCNode } from '../lib/model.js'
+import { CollapseButton } from './CollapseButton.js'
 
 export interface CommentsPanelProps {
   selected: WCNode | null
   comments: Comment[]
   onAdded: () => void
   onResolve: (id: string) => void
+  /** Collapse this panel to a rail (called by the header chevron). */
+  onCollapse?: () => void
+  /** Whether collapse is allowed (disabled when it's the last open panel). */
+  canCollapse?: boolean
 }
 
-export function CommentsPanel({ selected, comments, onAdded, onResolve }: CommentsPanelProps): React.JSX.Element {
+export function CommentsPanel({
+  selected,
+  comments,
+  onAdded,
+  onResolve,
+  onCollapse,
+  canCollapse = true,
+}: CommentsPanelProps): React.JSX.Element {
   const [draft, setDraft] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -56,6 +68,13 @@ export function CommentsPanel({ selected, comments, onAdded, onResolve }: Commen
           {mine.length}
         </span>
         {openCount > 0 ? <span className="text-[10px] text-amber-300/80">{openCount} open</span> : null}
+        <div className="flex-1" />
+        <CollapseButton
+          onCollapse={onCollapse}
+          canCollapse={canCollapse}
+          chevron="left"
+          label="Collapse comments panel"
+        />
       </div>
 
       <div className="px-3 py-2.5 border-b border-ink-700/40 shrink-0">
