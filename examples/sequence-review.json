@@ -1,0 +1,254 @@
+{
+  "$schema": "walkingcode.layered.v1",
+  "kind": "layered",
+  "schemaVersion": "v1",
+  "repo": "..",
+  "title": "Sequence Diagram — Code Review Map",
+  "description": "A layered map of the code that implemented sequence-diagram support (commit 7a814ec). Use it to walk the diff: each node links to the exact lines changed. Flow is Schema (parse) → Model/Layout (flatten + position) → Nodes (render) → View (dispatch) → CLI/Dev (tooling).",
+  "meta": {
+    "generatedBy": "hand-written",
+    "generatedAt": "2026-07-26T00:00:00.000Z",
+    "reviewTarget": "commit 7a814ec feat: add sequence diagram support",
+    "notes": "repo is '.' so locations resolve relative to the repo root."
+  },
+  "layers": [
+    {
+      "id": "schema",
+      "name": "Schema Layer",
+      "order": 0,
+      "description": "Tolerant zod schemas + the parse dispatch that recognises kind:'sequence'.",
+      "modules": [
+        {
+          "id": "sequence-schema",
+          "name": "sequence.ts",
+          "description": "Participant / Message / SequenceDocument schemas (replaces the z.any() stub).",
+          "location": { "file": "packages/schema/src/sequence.ts", "startLine": 22, "endLine": 77, "symbol": "SequenceDocumentSchema" },
+          "elements": [
+            {
+              "id": "participant-schema",
+              "name": "ParticipantSchema",
+              "kind": "interface",
+              "description": "id + name + kind(actor/service/db/...) + optional CodeLocation.",
+              "location": { "file": "packages/schema/src/sequence.ts", "startLine": 22, "endLine": 34, "symbol": "ParticipantSchema" }
+            },
+            {
+              "id": "message-schema",
+              "name": "MessageSchema",
+              "kind": "interface",
+              "description": "from/to participant ids + label + kind(call/return/...) + optional CodeLocation + order.",
+              "location": { "file": "packages/schema/src/sequence.ts", "startLine": 41, "endLine": 60, "symbol": "MessageSchema" }
+            }
+          ]
+        },
+        {
+          "id": "parse-dispatch",
+          "name": "index.ts",
+          "description": "parseDocument 'sequence' branch + collectSequenceWarnings.",
+          "location": { "file": "packages/schema/src/index.ts", "startLine": 95, "endLine": 101, "symbol": "parseDocument" },
+          "elements": [
+            {
+              "id": "sequence-warnings",
+              "name": "collectSequenceWarnings()",
+              "kind": "function",
+              "description": "Validates participant/message locations for bad line numbers.",
+              "location": { "file": "packages/schema/src/index.ts", "startLine": 160, "endLine": 193, "symbol": "collectSequenceWarnings" }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "model",
+      "name": "Model & Layout Layer",
+      "order": 1,
+      "description": "Flatten the document into positioned React Flow nodes/edges.",
+      "modules": [
+        {
+          "id": "sequence-model",
+          "name": "sequenceModel.ts",
+          "description": "buildSequenceModel: participants → WCNodes, messages → WCEntries.",
+          "location": { "file": "packages/app/src/renderer/src/lib/sequenceModel.ts", "startLine": 17, "endLine": 60, "symbol": "buildSequenceModel" },
+          "elements": [
+            {
+              "id": "msg-id-synth",
+              "name": "message id synthesis",
+              "kind": "function",
+              "description": "Sorts messages by order; synthesises 'from->to#n' ids when missing.",
+              "location": { "file": "packages/app/src/renderer/src/lib/sequenceModel.ts", "startLine": 39, "endLine": 54, "symbol": "buildSequenceModel.sort" }
+            }
+          ]
+        },
+        {
+          "id": "sequence-layout",
+          "name": "sequenceLayout.ts",
+          "description": "layoutSequence: participant lifelines across the top, message nodes at time steps.",
+          "location": { "file": "packages/app/src/renderer/src/lib/sequenceLayout.ts", "startLine": 33, "endLine": 115, "symbol": "layoutSequence" },
+          "elements": [
+            {
+              "id": "participant-positions",
+              "name": "participant positioning",
+              "kind": "function",
+              "description": "Evenly spaces participants and sizes their lifeline height.",
+              "location": { "file": "packages/app/src/renderer/src/lib/sequenceLayout.ts", "startLine": 45, "endLine": 63, "symbol": "layoutSequence.participants" }
+            },
+            {
+              "id": "message-nodes",
+              "name": "message tap-point nodes",
+              "kind": "function",
+              "description": "Each message becomes a node spanning from→to x at its y, carrying the CodeLocation.",
+              "location": { "file": "packages/app/src/renderer/src/lib/sequenceLayout.ts", "startLine": 65, "endLine": 108, "symbol": "layoutSequence.messages" }
+            }
+          ]
+        },
+        {
+          "id": "shared-model",
+          "name": "model.ts (shared types)",
+          "description": "WCNodeKind widened to 'participant'; WCEntry gains id + location for messages.",
+          "location": { "file": "packages/app/src/renderer/src/lib/model.ts", "startLine": 21, "endLine": 52, "symbol": "WCNodeKind" },
+          "elements": [
+            {
+              "id": "wcentry-fields",
+              "name": "WCEntry.id + location",
+              "kind": "type",
+              "description": "Messages need a stable id (comment anchoring) and a clickable location.",
+              "location": { "file": "packages/app/src/renderer/src/lib/model.ts", "startLine": 43, "endLine": 52, "symbol": "WCEntry" }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nodes",
+      "name": "Node Component Layer",
+      "order": 2,
+      "description": "Custom React Flow nodes that render participants and messages.",
+      "modules": [
+        {
+          "id": "participant-node",
+          "name": "ParticipantNode.tsx",
+          "description": "Header card + dashed lifeline; click selects the participant's code.",
+          "location": { "file": "packages/app/src/renderer/src/components/nodes/ParticipantNode.tsx", "startLine": 15, "endLine": 56, "symbol": "ParticipantImpl" },
+          "elements": [
+            {
+              "id": "lifeline",
+              "name": "dashed lifeline",
+              "kind": "component",
+              "description": "CSS dashed border spanning the node height to draw the lifeline.",
+              "location": { "file": "packages/app/src/renderer/src/components/nodes/ParticipantNode.tsx", "startLine": 47, "endLine": 53, "symbol": "ParticipantImpl.lifeline" }
+            }
+          ]
+        },
+        {
+          "id": "message-node",
+          "name": "MessageNode.tsx",
+          "description": "Directional arrow + label spanning from→to; return/async are dashed. Click opens the call site.",
+          "location": { "file": "packages/app/src/renderer/src/components/nodes/MessageNode.tsx", "startLine": 18, "endLine": 102, "symbol": "MessageImpl" },
+          "elements": [
+            {
+              "id": "arrow-render",
+              "name": "arrow + arrowhead SVG",
+              "kind": "component",
+              "description": "Inline SVG draws the line + arrowhead at the target end; dashed for return/async.",
+              "location": { "file": "packages/app/src/renderer/src/components/nodes/MessageNode.tsx", "startLine": 59, "endLine": 80, "symbol": "MessageImpl.arrow" }
+            },
+            {
+              "id": "message-colour",
+              "name": "kind-based colour",
+              "kind": "function",
+              "description": "call=blue, return/event=green/purple; selects stroke colour.",
+              "location": { "file": "packages/app/src/renderer/src/components/nodes/MessageNode.tsx", "startLine": 27, "endLine": 37, "symbol": "MessageImpl.colour" }
+            }
+          ]
+        },
+        {
+          "id": "badges",
+          "name": "badges.tsx",
+          "description": "ParticipantKindIcon — icon by participant kind.",
+          "location": { "file": "packages/app/src/renderer/src/components/nodes/badges.tsx", "startLine": 62, "endLine": 77, "symbol": "ParticipantKindIcon" }
+        }
+      ]
+    },
+    {
+      "id": "view",
+      "name": "View & Dispatch Layer",
+      "order": 3,
+      "description": "Kind-based dispatch + app-wide type widening.",
+      "modules": [
+        {
+          "id": "diagram-view",
+          "name": "DiagramView.tsx",
+          "description": "Branches on doc.kind → sequence or layered pipeline; registers wcParticipant/wcMessage.",
+          "location": { "file": "packages/app/src/renderer/src/components/DiagramView.tsx", "startLine": 37, "endLine": 60, "symbol": "DiagramView" },
+          "elements": [
+            {
+              "id": "kind-dispatch",
+              "name": "kind dispatch",
+              "kind": "handler",
+              "description": "if doc.kind === 'sequence' → layoutSequence(buildSequenceModel(doc)).",
+              "location": { "file": "packages/app/src/renderer/src/components/DiagramView.tsx", "startLine": 55, "endLine": 60, "symbol": "DiagramInner.positioned" }
+            }
+          ]
+        },
+        {
+          "id": "app-types",
+          "name": "App.tsx",
+          "description": "Loaded.doc widened to Layered|Sequence; message selection drives selectedElementId.",
+          "location": { "file": "packages/app/src/renderer/src/App.tsx", "startLine": 25, "endLine": 25, "symbol": "Loaded" },
+          "elements": [
+            {
+              "id": "message-select",
+              "name": "selectedElementId",
+              "kind": "handler",
+              "description": "Treats message nodes like elements for highlight: kind === 'element' || 'message'.",
+              "location": { "file": "packages/app/src/renderer/src/App.tsx", "startLine": 133, "endLine": 136, "symbol": "selectedElementId" }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tooling",
+      "name": "CLI & Dev Tooling",
+      "order": 4,
+      "description": "Validate output + dev-server example selection.",
+      "modules": [
+        {
+          "id": "validate-cli",
+          "name": "validate.ts",
+          "description": "Reports participants/messages count for sequence docs.",
+          "location": { "file": "packages/cli/src/commands/validate.ts", "startLine": 56, "endLine": 60, "symbol": "registerValidate.sequence" }
+        },
+        {
+          "id": "dev-args",
+          "name": "args.ts",
+          "description": "DEV_DEFAULT_ARCHS kind map + WALKINGCODE_DEV_ARCH selection.",
+          "location": { "file": "packages/app/src/main/args.ts", "startLine": 31, "endLine": 36, "symbol": "DEV_DEFAULT_ARCHS" },
+          "elements": [
+            {
+              "id": "devkind-resolve",
+              "name": "devKind resolution",
+              "kind": "function",
+              "description": "Reads bare 'layered'/'sequence' argv token or env var; passes to resolveDevDefaultArch.",
+              "location": { "file": "packages/app/src/main/args.ts", "startLine": 101, "endLine": 120, "symbol": "parseLaunchArgs.devKind" }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "edges": [
+    { "from": "schema/parse-dispatch", "to": "model/sequence-model", "label": "SequenceDocument", "kind": "data", "description": "parseDocument returns a SequenceDocument consumed by buildSequenceModel." },
+    { "from": "model/sequence-model", "to": "model/sequence-layout", "label": "WCModel", "kind": "data", "description": "buildSequenceModel → layoutSequence (nodes + entries)." },
+    { "from": "model/shared-model", "to": "model/sequence-model", "label": "WCNode/WCEntry", "kind": "uses", "description": "Widened WCNodeKind + WCEntry.id/location enable the shared model." },
+    { "from": "model/sequence-layout", "to": "nodes/participant-node", "label": "wcParticipant", "kind": "uses", "description": "Layout emits wcParticipant nodes; ParticipantNode renders them." },
+    { "from": "model/sequence-layout", "to": "nodes/message-node", "label": "wcMessage", "kind": "uses", "description": "Layout emits wcMessage nodes; MessageNode renders the arrow + label." },
+    { "from": "nodes/badges", "to": "nodes/participant-node", "label": "ParticipantKindIcon", "kind": "uses", "description": "ParticipantNode uses the icon helper." },
+    { "from": "view/diagram-view", "to": "model/sequence-model", "label": "buildSequenceModel", "kind": "call", "description": "DiagramView calls the model builder inside the kind branch." },
+    { "from": "view/diagram-view", "to": "model/sequence-layout", "label": "layoutSequence", "kind": "call", "description": "DiagramView calls the sequence layout inside the kind branch." },
+    { "from": "view/diagram-view", "to": "nodes/participant-node", "label": "register", "kind": "uses", "description": "nodeTypes maps wcParticipant → ParticipantNode." },
+    { "from": "view/diagram-view", "to": "nodes/message-node", "label": "register", "kind": "uses", "description": "nodeTypes maps wcMessage → MessageNode." },
+    { "from": "view/app-types", "to": "view/diagram-view", "label": "doc", "kind": "data", "description": "App passes the union-typed doc to DiagramView." },
+    { "from": "schema/parse-dispatch", "to": "tooling/validate-cli", "label": "parseDocument", "kind": "call", "description": "validate calls parseDocument; the sequence branch makes it kind-aware." },
+    { "from": "tooling/dev-args", "to": "schema/sequence-schema", "label": "loads example", "kind": "event", "description": "WALKINGCODE_DEV_ARCH=sequence resolves examples/sequence-auth.json at launch." }
+  ]
+}
