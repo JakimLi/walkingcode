@@ -28,6 +28,7 @@ FALLBACK_SYMLINK_DIR="$HOME/.local/bin"
 bold() { printf "\033[1m%s\033[0m\n" "$*"; }
 dim()  { printf "\033[2m%s\033[0m\n" "$*"; }
 ok()   { printf "  \033[32m✓\033[0m %s\n" "$*"; }
+warn() { printf "  \033[33m!\033[0m %s\n" "$*"; }
 err()  { printf "  \033[31m✗\033[0m %s\n" "$*" >&2; }
 info() { printf "  \033[36m→\033[0m %s\n" "$*"; }
 
@@ -94,6 +95,27 @@ cd "$INSTALL_DIR"
 info "Installing dependencies (this downloads Electron — may take a minute)…"
 npm install --no-fund --no-audit
 ok "dependencies installed"
+
+# ---- ensure the Electron binary is present + signed -----------------------
+# macOS Gatekeeper blocks the unsigned Electron binary that npm's postinstall
+# fetches, so on Darwin we explicitly re-run the download and ad-hoc re-sign
+# the .app bundle. Without this, `walkingcode open` is killed on launch.
+if [ "$(uname -s)" = "Darwin" ]; then
+  ELECTRON_APP="$INSTALL_DIR/node_modules/electron/dist/Electron.app"
+  if [ ! -d "$ELECTRON_APP" ]; then
+    info "Electron binary missing — re-downloading…"
+    (cd "$INSTALL_DIR" && node node_modules/electron/install.js) || true
+  fi
+  if [ -d "$ELECTRON_APP" ]; then
+    info "Ad-hoc signing the Electron app (bypasses Gatekeeper)…"
+    codesign --force --deep --sign - "$ELECTRON_APP" 2>/dev/null \
+      || warn "codesign failed — the OS may block the app on launch."
+    ok "Electron ready"
+  else
+    warn "Electron binary still missing. 'walkingcode open' will not work."
+    warn "Try: cd $INSTALL_DIR && node node_modules/electron/install.js"
+  fi
+fi
 
 # ---- build ----------------------------------------------------------------
 info "Building schema…"
