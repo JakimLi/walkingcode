@@ -1,0 +1,132 @@
+{
+  "$schema": "walkingcode.sequence.v1",
+  "kind": "sequence",
+  "schemaVersion": "v1",
+  "repo": "../stubs/demo-shop",
+  "title": "Demo Shop — Login Flow",
+  "description": "A sequence diagram tracing a login request from the browser client down through the auth controller, auth service, user repository, and token service. Each message links to the exact line of code that performs it; click a message to read that code.",
+  "meta": {
+    "generatedBy": "hand-written",
+    "generatedAt": "2026-07-26T00:00:00.000Z",
+    "notes": "Sequence-diagram example; references the stub repo under stubs/demo-shop."
+  },
+  "participants": [
+    {
+      "id": "client",
+      "name": "Web Client",
+      "kind": "client",
+      "description": "Browser-side code that sends the login request.",
+      "location": { "file": "web-client/authApi.ts", "startLine": 7, "endLine": 18, "symbol": "login" }
+    },
+    {
+      "id": "authController",
+      "name": "AuthController",
+      "kind": "service",
+      "description": "HTTP handler for POST /api/auth/login.",
+      "location": { "file": "server/controller/AuthController.ts", "startLine": 12, "endLine": 21, "symbol": "AuthController.login" }
+    },
+    {
+      "id": "authService",
+      "name": "AuthService",
+      "kind": "service",
+      "description": "Validates credentials and issues tokens.",
+      "location": { "file": "server/service/AuthService.ts", "startLine": 22, "endLine": 33, "symbol": "AuthService.authenticate" }
+    },
+    {
+      "id": "userRepo",
+      "name": "UserRepository",
+      "kind": "database",
+      "description": "Data access; looks up users by email.",
+      "location": { "file": "server/repository/UserRepository.ts", "startLine": 31, "endLine": 33, "symbol": "UserRepository.findByEmail" }
+    },
+    {
+      "id": "tokenService",
+      "name": "TokenService",
+      "kind": "service",
+      "description": "Signs and verifies JWT-like tokens.",
+      "location": { "file": "server/service/TokenService.ts", "startLine": 19, "endLine": 27, "symbol": "TokenService.sign" }
+    }
+  ],
+  "messages": [
+    {
+      "id": "m1",
+      "from": "client",
+      "to": "authController",
+      "label": "POST /api/auth/login",
+      "kind": "call",
+      "description": "Browser submits email + password.",
+      "location": { "file": "web-client/authApi.ts", "startLine": 8, "endLine": 13, "symbol": "login.fetch" },
+      "order": 0
+    },
+    {
+      "id": "m2",
+      "from": "authController",
+      "to": "authService",
+      "label": "authenticate(email, pwd)",
+      "kind": "call",
+      "description": "Controller delegates credential verification.",
+      "location": { "file": "server/controller/AuthController.ts", "startLine": 15, "endLine": 15, "symbol": "AuthController.login" },
+      "order": 1
+    },
+    {
+      "id": "m3",
+      "from": "authService",
+      "to": "userRepo",
+      "label": "findByEmail(email)",
+      "kind": "call",
+      "description": "Look up the user row by email address.",
+      "location": { "file": "server/service/AuthService.ts", "startLine": 24, "endLine": 24, "symbol": "AuthService.authenticate" },
+      "order": 2
+    },
+    {
+      "id": "m4",
+      "from": "userRepo",
+      "to": "authService",
+      "label": "UserRow",
+      "kind": "return",
+      "description": "Return the matching user (or null).",
+      "location": { "file": "server/repository/UserRepository.ts", "startLine": 32, "endLine": 32, "symbol": "UserRepository.findByEmail" },
+      "order": 3
+    },
+    {
+      "id": "m5",
+      "from": "authService",
+      "to": "tokenService",
+      "label": "sign(userId, email)",
+      "kind": "call",
+      "description": "Issue a signed token for the authenticated user.",
+      "location": { "file": "server/service/AuthService.ts", "startLine": 31, "endLine": 31, "symbol": "AuthService.authenticate" },
+      "order": 4
+    },
+    {
+      "id": "m6",
+      "from": "tokenService",
+      "to": "authService",
+      "label": "token",
+      "kind": "return",
+      "description": "Return the encoded JWT string.",
+      "location": { "file": "server/service/TokenService.ts", "startLine": 26, "endLine": 26, "symbol": "TokenService.sign" },
+      "order": 5
+    },
+    {
+      "id": "m7",
+      "from": "authService",
+      "to": "authController",
+      "label": "AuthResult { ok, token }",
+      "kind": "return",
+      "description": "Return the auth outcome.",
+      "location": { "file": "server/service/AuthService.ts", "startLine": 32, "endLine": 32, "symbol": "AuthService.authenticate" },
+      "order": 6
+    },
+    {
+      "id": "m8",
+      "from": "authController",
+      "to": "client",
+      "label": "200 OK { token }",
+      "kind": "return",
+      "description": "Send the token back to the browser.",
+      "location": { "file": "server/controller/AuthController.ts", "startLine": 20, "endLine": 20, "symbol": "AuthController.login" },
+      "order": 7
+    }
+  ]
+}
