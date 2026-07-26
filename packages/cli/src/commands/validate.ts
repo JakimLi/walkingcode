@@ -51,12 +51,18 @@ export function registerValidate(program: Command): void {
       }
 
       const doc = result.document
-      const layerCount = 'layers' in doc ? (doc as { layers?: unknown[] }).layers?.length ?? 0 : 0
-      const edgeCount = 'edges' in doc ? (doc as { edges?: unknown[] }).edges?.length ?? 0 : 0
       console.log(`✓ valid: "${doc.title ?? '(untitled)'}"`)
       console.log(`  kind:        ${doc.kind}`)
-      console.log(`  layers:      ${layerCount}`)
-      console.log(`  edges:       ${edgeCount}`)
+      if (doc.kind === 'sequence') {
+        const sdoc = doc as { participants?: unknown[]; messages?: unknown[] }
+        console.log(`  participants:${sdoc.participants?.length ?? 0}`)
+        console.log(`  messages:    ${sdoc.messages?.length ?? 0}`)
+      } else {
+        const ldoc = doc as { layers?: unknown[]; edges?: unknown[]; externalNodes?: unknown[] }
+        console.log(`  layers:      ${ldoc.layers?.length ?? 0}`)
+        console.log(`  externals:   ${ldoc.externalNodes?.length ?? 0}`)
+        console.log(`  edges:       ${ldoc.edges?.length ?? 0}`)
+      }
       if (result.warnings.length) {
         console.warn(`  warnings:    ${result.warnings.length}`)
         for (const w of result.warnings) {

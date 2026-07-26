@@ -97,7 +97,8 @@ export function parseDocument(input: unknown): ParseResult {
     if (!result.success) {
       return err('Sequence document failed validation.', [], fromZodError(result.error))
     }
-    return { ok: true, document: result.data as SequenceDocument, warnings: [] }
+    const warnings = collectSequenceWarnings(input)
+    return { ok: true, document: result.data as SequenceDocument, warnings }
   }
 
   // unreachable — kind already validated
@@ -150,6 +151,38 @@ function checkLocation(loc: unknown): string | null {
     return `endLine must be a positive integer, got ${JSON.stringify(l.endLine)}`
   }
   return null
+}
+
+/**
+ * Best-effort loose validation for sequence documents — same spirit as
+ * collectWarnings but scans participants and messages for malformed locations.
+ */
+function collectSequenceWarnings(input: unknown): ParseWarning[] {
+  const warnings: ParseWarning[] = []
+  if (typeof input !== 'object' || input === null) return warnings
+  const doc = input as Record<string, unknown>
+
+  const participants = Array.isArray(doc.participants) ? (doc.participants as unknown[]) : []
+  participants.forEach((p, pi) => {
+    if (typeof p !== 'object' || p === null) return
+    const loc = (p as Record<string, unknown>).location
+    if (loc !== undefined) {
+      const w = checkLocation(loc)
+      if (w) warnings.push({ path: `participants[${pi}].location`, message: w })
+    }
+  })
+
+  const messages = Array.isArray(doc.messages) ? (doc.messages as unknown[]) : []
+  messages.forEach((m, mi) => {
+    if (typeof m !== 'object' || m === null) return
+    const loc = (m as Record<string, unknown>).location
+    if (loc !== undefined) {
+      const w = checkLocation(loc)
+      if (w) warnings.push({ path: `messages[${mi}].location`, message: w })
+    }
+  })
+
+  return warnings
 }
 
 function fromZodError(error: z.ZodError): { path: string; message: string }[] {

@@ -18,7 +18,7 @@ import type {
   ExternalNode,
 } from '@wc-schema'
 
-export type WCNodeKind = 'layer' | 'module' | 'element' | 'external'
+export type WCNodeKind = 'layer' | 'module' | 'element' | 'external' | 'participant'
 export type WCExternalKind = ExternalNode['kind']
 
 export interface WCNode {
@@ -41,11 +41,15 @@ export interface WCNode {
 }
 
 export interface WCEntry {
+  /** Stable id (used for message nodes / comment anchoring in sequence diagrams). */
+  id?: string
   from: string
   to: string
   label?: string
   kind?: string
   description?: string
+  /** Clickable code location (sequence messages carry one; layered edges usually don't). */
+  location?: { repo?: string; file: string; startLine?: number; endLine?: number; symbol?: string }
 }
 
 export interface WCModel {

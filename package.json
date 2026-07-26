@@ -14,6 +14,8 @@
     "build:app": "npm run build -w @walkingcode/app",
     "cli": "node packages/cli/dist/index.js",
     "dev": "npm run dev -w @walkingcode/app",
+    "dev:layered": "npm run dev:layered -w @walkingcode/app",
+    "dev:seq": "npm run dev:seq -w @walkingcode/app",
     "validate": "node packages/cli/dist/index.js validate examples/layered-arch.json"
   },
   "engines": {

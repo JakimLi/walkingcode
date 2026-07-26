@@ -10,7 +10,7 @@
  * comments (reloaded from the sidecar after each add).
  */
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { LayeredDocument, ParseWarning, Comment } from '@wc-schema'
+import type { LayeredDocument, SequenceDocument, ParseWarning, Comment } from '@wc-schema'
 import type { ArchLoadResult, CodeReadError, CodeReadResult } from './types/preload'
 import type { WCNode } from './lib/model'
 import { Toolbar } from './components/Toolbar'
@@ -22,7 +22,7 @@ import { PanelRail } from './components/PanelRail'
 interface Loaded {
   archFile: string | null
   repo: string | null
-  doc: LayeredDocument | null
+  doc: LayeredDocument | SequenceDocument | null
   warnings: ParseWarning[]
   /** Hard parse error message, if the document failed to load. */
   error: string | null
@@ -85,7 +85,7 @@ export default function App(): React.JSX.Element {
           setLoaded({
             archFile: res.archFile,
             repo: res.repo,
-            doc: res.parse.document as LayeredDocument,
+            doc: res.parse.document as LayeredDocument | SequenceDocument,
             warnings: res.parse.warnings,
             error: null,
           })
@@ -129,7 +129,11 @@ export default function App(): React.JSX.Element {
     [reloadComments]
   )
 
-  const selectedElementId = selected?.kind === 'element' ? selected.id : null
+  // for element highlight inside modules, and message highlight in sequence
+  const selectedElementId =
+    selected && (selected.kind === 'element' || selected.kind === ('message' as WCNode['kind']))
+      ? selected.id
+      : null
   const selectedId = selected?.id ?? null
 
   // keep `selected` fresh if its underlying data changed (e.g. after reload)

@@ -58,6 +58,24 @@ export function ExternalKindIcon({ kind }: { kind?: string }): ReactNode {
   }
 }
 
+/** Participant icon by kind (sequence diagrams). */
+export function ParticipantKindIcon({ kind }: { kind?: string }): ReactNode {
+  switch (kind) {
+    case 'client':
+      return <span title="client" className="text-edge-call text-[13px]">🖥</span>
+    case 'actor':
+      return <span title="actor" className="text-edge-call text-[13px]">🙂</span>
+    case 'service':
+      return <span title="service" className="text-edge-event text-[13px]">⚙</span>
+    case 'database':
+      return <span title="database" className="text-warning text-[13px]">🗄</span>
+    case 'external':
+      return <span title="external" className="text-ink-400 text-[13px]">⬡</span>
+    default:
+      return <span className="text-ink-400 text-[13px]">◇</span>
+  }
+}
+
 /** A small badge showing the count of comments anchored to this node. */
 export function CommentBadge({ count }: { count: number }): ReactNode {
   if (!count) return null

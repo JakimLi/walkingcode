@@ -12,9 +12,10 @@
  * the arch file as a `--arch-file <path>` flag for flexibility.
  *
  * Dev fallback: `npm run dev` (bare `electron-vite dev`) launches electron with
- * no arch file. Rather than show an error, we fall back to the bundled example
- * (examples/layered-arch.json) so the app is immediately useful. A path passed
- * via argv or --arch-file always wins.
+ * no arch file. Rather than show an error, we fall back to a bundled example so
+ * the app is immediately useful. Pick the kind with `npm run dev -- sequence`
+ * (or `-- layered`); the WALKINGCODE_DEV_ARCH env var does the same. A path
+ * passed via argv or --arch-file always wins.
  */
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
@@ -26,15 +27,21 @@ export interface LaunchArgs {
   dev: boolean
 }
 
-/** Relative path (from the repo root) of the bundled example arch file. */
-export const DEV_DEFAULT_ARCH = 'examples/layered-arch.json'
+/** Bundled example arch files, keyed by diagram kind (relative to repo root). */
+export const DEV_DEFAULT_ARCHS: Record<string, string> = {
+  layered: 'examples/layered-arch.json',
+  sequence: 'examples/sequence-auth.json',
+}
+/** Which example to load when no kind is specified. */
+export const DEV_DEFAULT_KIND = 'layered'
 
 /**
- * Find the bundled example arch file by walking up from a set of candidate base
- * dirs (cwd, this module) until `examples/layered-arch.json` exists. Returns an
- * absolute path or null if not found.
+ * Find a bundled example arch file by walking up from a set of candidate base
+ * dirs (cwd, this module). `kind` selects which example ("layered" / "sequence");
+ * falls back to the default kind. Returns an absolute path or null if not found.
  */
-export function resolveDevDefaultArch(): string | null {
+export function resolveDevDefaultArch(kind?: string): string | null {
+  const rel = DEV_DEFAULT_ARCHS[kind ?? DEV_DEFAULT_KIND] ?? DEV_DEFAULT_ARCHS[DEV_DEFAULT_KIND]
   const bases: string[] = []
   if (typeof process !== 'undefined' && process.cwd) bases.push(process.cwd())
   try {
@@ -51,7 +58,7 @@ export function resolveDevDefaultArch(): string | null {
     // walk up a few levels to be robust to where the bundle lives.
     let dir = base
     for (let depth = 0; depth < 6; depth++) {
-      const candidate = join(dir, DEV_DEFAULT_ARCH)
+      const candidate = join(dir, rel)
       if (existsSync(candidate)) return candidate
       const parent = join(dir, '..')
       if (parent === dir) break // reached filesystem root
@@ -68,6 +75,8 @@ export function parseLaunchArgs(argv: string[] = process.argv, env: NodeJS.Proce
   let dev = false
 
   // First positional that looks like a path is the arch file (CLI passes it as such).
+  // A bare "layered" / "sequence" token selects the bundled example kind instead.
+  let devKind: string | null = null
   const positionals: string[] = []
   for (let i = 0; i < args.length; i++) {
     const a = args[i]
@@ -87,6 +96,12 @@ export function parseLaunchArgs(argv: string[] = process.argv, env: NodeJS.Proce
     if (a.startsWith('http://') || a.startsWith('https://')) continue
     // skip electron inspector / other flags
     if (a.startsWith('--')) continue
+    // a bare diagram-kind token (e.g. `npm run dev -- sequence`) selects the
+    // bundled example for that kind rather than being treated as a file path.
+    if (DEV_DEFAULT_ARCHS[a]) {
+      devKind = a
+      continue
+    }
     positionals.push(a)
   }
 
@@ -102,7 +117,7 @@ export function parseLaunchArgs(argv: string[] = process.argv, env: NodeJS.Proce
 
   // dev fallback: no arch file provided → use the bundled example
   if (!archFile && dev) {
-    archFile = resolveDevDefaultArch()
+    archFile = resolveDevDefaultArch(devKind ?? env.WALKINGCODE_DEV_ARCH ?? undefined)
   }
 
   return { archFile, repo, dev }

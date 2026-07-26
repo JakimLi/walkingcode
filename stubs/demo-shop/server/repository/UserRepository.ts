@@ -26,4 +26,9 @@ export class UserRepository {
   async selectById(id: number): Promise<UserRow | null> {
     return TABLE.find((u) => u.id === id) ?? null
   }
+
+  /** SELECT * FROM users WHERE email = ? */
+  async findByEmail(email: string): Promise<UserRow | null> {
+    return TABLE.find((u) => u.email === email) ?? null
+  }
 }

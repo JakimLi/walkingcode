@@ -1,6 +1,10 @@
 /**
  * DiagramView — hosts React Flow, registers custom node types, and feeds the
  * interaction context so node clicks bubble up to the App.
+ *
+ * Branches on `doc.kind`: `layered` uses the band/module/external pipeline;
+ * `sequence` uses the participant/message pipeline. Both share the same React
+ * Flow chrome (Background, MiniMap, Controls) and interaction context.
  */
 import { useCallback, useMemo } from 'react'
 import {
@@ -15,24 +19,31 @@ import {
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 
-import type { LayeredDocument } from '@wc-schema'
+import type { LayeredDocument, SequenceDocument } from '@wc-schema'
 import type { Comment } from '@wc-schema'
 import { buildModel } from '../lib/model.js'
 import { layout } from '../lib/layout.js'
+import { buildSequenceModel } from '../lib/sequenceModel.js'
+import { layoutSequence } from '../lib/sequenceLayout.js'
 import type { WCNode } from '../lib/model.js'
+import type { PositionedModel } from '../lib/layout.js'
 import { BandNode } from './nodes/BandNode.js'
 import { ModuleNode } from './nodes/ModuleNode.js'
 import { ExternalNode } from './nodes/ExternalNode.js'
+import { ParticipantNode } from './nodes/ParticipantNode.js'
+import { MessageNode } from './nodes/MessageNode.js'
 import { DiagramCtx } from './nodes/diagramCtx.js'
 
 const nodeTypes: NodeTypes = {
   wcBand: BandNode as unknown as NodeTypes[string],
   wcModule: ModuleNode as unknown as NodeTypes[string],
   wcExternal: ExternalNode as unknown as NodeTypes[string],
+  wcParticipant: ParticipantNode as unknown as NodeTypes[string],
+  wcMessage: MessageNode as unknown as NodeTypes[string],
 }
 
 export interface DiagramViewProps {
-  doc: LayeredDocument
+  doc: LayeredDocument | SequenceDocument
   comments: Comment[]
   selectedElementId: string | null
   onSelect: (node: WCNode) => void
@@ -41,7 +52,12 @@ export interface DiagramViewProps {
 function DiagramInner(props: DiagramViewProps): React.JSX.Element {
   const { doc, comments, selectedElementId, onSelect } = props
 
-  const positioned = useMemo(() => layout(buildModel(doc)), [doc])
+  const positioned = useMemo<PositionedModel>(() => {
+    if (doc.kind === 'sequence') {
+      return layoutSequence(buildSequenceModel(doc))
+    }
+    return layout(buildModel(doc))
+  }, [doc])
 
   const commentCounts = useMemo(() => {
     const m = new Map<string, number>()
