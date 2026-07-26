@@ -82,7 +82,9 @@ if [ -d "$INSTALL_DIR/.git" ]; then
 else
   info "Cloning into $INSTALL_DIR …"
   mkdir -p "$(dirname "$INSTALL_DIR")"
-  git clone --depth 1 "$REPO_URL" "$INSTALL_DIR"
+  # Some networks misnegotiate HTTP/2; fall back to HTTP/1.1 if clone fails.
+  git clone --depth 1 "$REPO_URL" "$INSTALL_DIR" \
+    || git -c http.version=HTTP/1.1 clone --depth 1 "$REPO_URL" "$INSTALL_DIR"
 fi
 ok "source ready"
 
