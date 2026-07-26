@@ -15,6 +15,8 @@ regains its spine.
 
 ![WalkingCode GUI — architecture diagram with clickable code and comments](./docs/images/demo.jpg)
 
+![WalkingCode GUI — sequence diagram with message arrows](./docs/images/demo-sequence.jpg)
+
 **The loop:** an agent generates the architecture description → the GUI renders
 the diagram with code one click away → you review and leave comments anchored to
 nodes → the agent reads them back and iterates.
