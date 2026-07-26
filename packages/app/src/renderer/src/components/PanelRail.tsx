@@ -29,12 +29,12 @@ export function PanelRail({ label, chevron, onExpand }: PanelRailProps): React.J
       title={`Expand ${label.toLowerCase()}`}
       className={[
         'group relative flex h-full w-full cursor-pointer flex-col items-center justify-start pt-2.5',
-        'bg-ink-850/40 hover:bg-ink-800/60 transition-colors',
-        chevron === 'right' ? 'border-l border-ink-700/60' : 'border-r border-ink-700/60',
+        'bg-surface-inset hover:bg-surface-overlay transition-colors',
+        chevron === 'right' ? 'border-l border-border-subtle' : 'border-r border-border-subtle',
       ].join(' ')}
     >
       {/* expand chevron — pinned to the top, upright */}
-      <span className="flex h-6 w-6 items-center justify-center rounded-md text-ink-400 group-hover:text-accent group-hover:bg-white/[0.06] transition-colors">
+      <span className="flex h-6 w-6 items-center justify-center rounded-md text-ink-500 group-hover:text-accent-blue transition-colors">
         {chevron === 'right' ? (
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
             <path d="M5 3L9 6.5L5 10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
@@ -48,7 +48,7 @@ export function PanelRail({ label, chevron, onExpand }: PanelRailProps): React.J
 
       {/* vertical label — centred in the remaining height */}
       <span
-        className="mt-auto mb-auto text-ink-400 group-hover:text-ink-200 transition-colors text-[10px] uppercase tracking-[0.18em] font-semibold whitespace-nowrap"
+        className="mt-auto mb-auto text-ink-500 group-hover:text-ink-300 transition-colors text-[10px] uppercase tracking-[0.18em] font-semibold whitespace-nowrap"
         style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
       >
         {label}

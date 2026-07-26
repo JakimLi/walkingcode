@@ -18,7 +18,6 @@ import { DiagramView } from './components/DiagramView'
 import { CodeView } from './components/CodeView'
 import { CommentsPanel } from './components/CommentsPanel'
 import { PanelRail } from './components/PanelRail'
-import { CollapseButton } from './components/CollapseButton'
 
 interface Loaded {
   archFile: string | null
@@ -170,8 +169,8 @@ export default function App(): React.JSX.Element {
 
   if (!loaded) {
     return (
-      <div className="w-screen h-screen flex flex-col items-center justify-center gap-3">
-        <div className="h-7 w-7 rounded-md border-2 border-ink-700 border-t-accent animate-spin" />
+      <div className="w-screen h-screen flex flex-col items-center justify-center gap-3 bg-surface-base">
+        <div className="h-6 w-6 rounded-md border-2 border-border-strong border-t-accent-blue animate-spin" />
         <div className="text-ink-400 text-sm">Loading…</div>
       </div>
     )
@@ -179,14 +178,14 @@ export default function App(): React.JSX.Element {
 
   if (loaded.error || !loaded.doc) {
     return (
-      <div className="w-screen h-screen flex flex-col items-center justify-center p-8">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-500/10 ring-1 ring-inset ring-red-500/30 mb-4">
-          <span className="text-red-400 text-xl">!</span>
+      <div className="w-screen h-screen flex flex-col items-center justify-center p-8 bg-surface-base">
+        <div className="flex h-10 w-10 items-center justify-center rounded-md bg-danger/10 border border-danger/30 mb-4">
+          <span className="text-danger text-lg">!</span>
         </div>
-        <div className="text-red-300 font-medium mb-2">Couldn’t open the architecture file</div>
+        <div className="text-danger font-medium mb-2">Couldn’t open the architecture file</div>
         <div className="text-ink-400 text-sm max-w-xl text-center">{loaded.error}</div>
         {loaded.archFile ? (
-          <div className="text-ink-500 text-xs font-mono mt-3 px-2 py-1 rounded bg-ink-850 border border-ink-700">
+          <div className="text-ink-500 text-xs font-mono mt-3 px-2 py-1 rounded bg-surface-raised border border-border-subtle">
             {loaded.archFile}
           </div>
         ) : null}
@@ -195,7 +194,7 @@ export default function App(): React.JSX.Element {
   }
 
   return (
-    <div className="w-screen h-screen flex flex-col overflow-hidden bg-ink-900">
+    <div className="w-screen h-screen flex flex-col overflow-hidden bg-surface-base">
       <Toolbar
         doc={loaded.doc}
         repo={loaded.repo}
@@ -224,10 +223,10 @@ export default function App(): React.JSX.Element {
                   title={openCount <= 1 ? 'Keep at least one panel open' : 'Collapse diagram'}
                   aria-label="Collapse diagram"
                   className={[
-                    'flex h-6 w-6 items-center justify-center rounded-md transition-colors backdrop-blur-sm',
+                    'flex h-6 w-6 items-center justify-center rounded-md border border-border-subtle transition-colors',
                     openCount <= 1
-                      ? 'bg-ink-850/70 text-ink-700 cursor-not-allowed'
-                      : 'bg-ink-850/70 text-ink-500 hover:text-ink-100 hover:bg-ink-800 cursor-pointer',
+                      ? 'bg-surface-raised text-ink-600 cursor-not-allowed'
+                      : 'bg-surface-raised text-ink-500 hover:text-ink-100 hover:border-border-strong cursor-pointer',
                   ].join(' ')}
                 >
                   <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
@@ -275,12 +274,11 @@ export default function App(): React.JSX.Element {
 
 function StatusBar({ selectedId, selected }: { selectedId: string | null; selected: WCNode | null }): React.JSX.Element {
   return (
-    <div className="h-6 px-3 flex items-center gap-2.5 border-t border-ink-700/60 bg-ink-900/80 backdrop-blur-sm text-[11px] text-ink-500 shrink-0">
-      <span className="h-1.5 w-1.5 rounded-full bg-accent shadow-[0_0_6px_rgba(107,160,255,0.6)]" />
+    <div className="h-6 px-3 flex items-center gap-2.5 border-t border-border-subtle bg-surface-raised text-[11px] text-ink-500 shrink-0">
       <span className="font-mono">{selectedId ?? '—'}</span>
       {selected?.location ? (
         <>
-          <span className="text-ink-700">·</span>
+          <span className="text-ink-600">·</span>
           <span className="font-mono">
             {selected.location.file}
             {selected.location.startLine ? `:${selected.location.startLine}` : ''}
@@ -289,7 +287,7 @@ function StatusBar({ selectedId, selected }: { selectedId: string | null; select
       ) : null}
       <span className="flex-1" />
       <span className="text-ink-500">
-        <kbd className="font-mono px-1 py-0.5 rounded bg-ink-800 border border-ink-700 text-ink-400">⌘↵</kbd>
+        <kbd className="font-mono px-1 py-0.5 rounded-sm bg-surface-inset border border-border-subtle text-ink-400">⌘↵</kbd>
         <span className="ml-1.5">post comment · click nodes to read code</span>
       </span>
     </div>

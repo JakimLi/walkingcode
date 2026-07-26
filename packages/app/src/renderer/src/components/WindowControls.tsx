@@ -21,7 +21,7 @@ export function WindowControls(): React.JSX.Element | null {
         type="button"
         onClick={() => void window.wc.win.minimize()}
         title="Minimize"
-        className="flex h-7 w-7 items-center justify-center rounded-md text-ink-400 hover:bg-white/[0.08] hover:text-ink-100 transition-colors"
+        className="flex h-7 w-7 items-center justify-center rounded-md text-ink-400 hover:bg-surface-overlay hover:text-ink-100 transition-colors"
       >
         <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
           <rect x="1" y="5" width="9" height="1" rx="0.5" fill="currentColor" />
@@ -31,7 +31,7 @@ export function WindowControls(): React.JSX.Element | null {
         type="button"
         onClick={() => void window.wc.win.toggleMaximize()}
         title="Toggle maximize"
-        className="flex h-7 w-7 items-center justify-center rounded-md text-ink-400 hover:bg-white/[0.08] hover:text-ink-100 transition-colors"
+        className="flex h-7 w-7 items-center justify-center rounded-md text-ink-400 hover:bg-surface-overlay hover:text-ink-100 transition-colors"
       >
         <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
           <rect x="1.5" y="1.5" width="8" height="8" rx="1" stroke="currentColor" strokeWidth="1" />
@@ -41,7 +41,7 @@ export function WindowControls(): React.JSX.Element | null {
         type="button"
         onClick={() => void window.wc.win.close()}
         title="Close"
-        className="flex h-7 w-7 items-center justify-center rounded-md text-ink-400 hover:bg-red-500/80 hover:text-white transition-colors"
+        className="flex h-7 w-7 items-center justify-center rounded-md text-ink-400 hover:bg-danger/80 hover:text-white transition-colors"
       >
         <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
           <path d="M2 2L9 9M9 2L2 9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />

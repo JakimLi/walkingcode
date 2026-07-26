@@ -21,19 +21,16 @@ function ModuleImpl({ data, width, height, selected }: NodeProps): React.JSX.Ele
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 6 }}
+      initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.18 }}
+      transition={{ duration: 0.15 }}
       style={{ width, height }}
       className={[
-        'wc-node-surface group flex flex-col overflow-hidden rounded-xl border bg-ink-850/80 backdrop-blur-sm',
-        'border-white/[0.06] shadow-card transition-colors duration-150',
-        selected
-          ? 'border-accent/50'
-          : 'hover:border-white/[0.12]',
+        'wc-node-surface flex flex-col overflow-hidden rounded-md border bg-surface-panel shadow-[0_2px_6px_rgba(0,0,0,0.25)]',
+        selected ? 'border-accent-blue' : 'border-border hover:border-border-strong',
       ].join(' ')}
     >
-      <Handle type="target" position={Position.Top} className="!h-2 !w-2 !border-0 !bg-ink-600" />
+      <Handle type="target" position={Position.Top} className="!h-1.5 !w-1.5 !border-0 !bg-border-strong opacity-0" />
 
       {/* header — keep height stable: pt-2 pb-1.5 matches MODULE_HEADER_HEIGHT */}
       <button
@@ -41,13 +38,13 @@ function ModuleImpl({ data, width, height, selected }: NodeProps): React.JSX.Ele
         onClick={() => clickable && onSelect(wc)}
         disabled={!clickable}
         className={[
-          'text-left px-3 pt-2 pb-1.5 border-b border-white/[0.05]',
-          clickable ? 'cursor-pointer hover:bg-white/[0.03]' : 'cursor-default',
+          'text-left px-3 pt-2 pb-1.5 border-b border-border-subtle',
+          clickable ? 'cursor-pointer hover:bg-surface-overlay' : 'cursor-default',
         ].join(' ')}
         title={wc.description ?? wc.name}
       >
         <div className="flex items-center gap-1.5">
-          <span className="text-ink-100 text-[13px] font-semibold leading-tight truncate">
+          <span className="text-ink-100 text-[13px] font-medium leading-tight truncate">
             {wc.name}
           </span>
           {moduleComments > 0 ? <CommentBadge count={moduleComments} /> : null}
@@ -62,7 +59,7 @@ function ModuleImpl({ data, width, height, selected }: NodeProps): React.JSX.Ele
         {elements.length === 0 ? (
           <div className="px-3 py-2 text-ink-500 text-[11px] italic">no elements</div>
         ) : (
-          <ul className="py-1">
+          <ul className="py-0.5">
             {elements.map((el) => {
               const isSel = el.id === selectedElementId
               const elClickable = !!el.location
@@ -76,9 +73,9 @@ function ModuleImpl({ data, width, height, selected }: NodeProps): React.JSX.Ele
                     className={[
                       'w-full text-left px-3 py-1 flex items-center gap-2 text-[12px] font-mono transition-colors',
                       isSel
-                        ? 'bg-accent/15 text-ink-100'
+                        ? 'bg-accent-blue/15 text-ink-100'
                         : elClickable
-                          ? 'text-ink-300 hover:bg-white/[0.04] hover:text-ink-100'
+                          ? 'text-ink-300 hover:bg-surface-overlay hover:text-ink-100'
                           : 'text-ink-500 cursor-default',
                     ].join(' ')}
                     title={el.description ?? el.name}
@@ -98,7 +95,7 @@ function ModuleImpl({ data, width, height, selected }: NodeProps): React.JSX.Ele
         )}
       </div>
 
-      <Handle type="source" position={Position.Bottom} className="!h-2 !w-2 !border-0 !bg-ink-600" />
+      <Handle type="source" position={Position.Bottom} className="!h-1.5 !w-1.5 !border-0 !bg-border-strong opacity-0" />
     </motion.div>
   )
 }

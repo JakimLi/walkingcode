@@ -2,54 +2,40 @@
 import type { ReactNode } from 'react'
 
 /**
- * Tiny inline SVG glyphs keyed by element kind. Rendered in a 14px box so the
- * element rows stay aligned even when an icon is absent.
+ * Tiny inline glyphs keyed by element kind. Flat monochrome chips — Codex-style
+ * keeps syntax indicators subtle rather than colorful.
  */
 export function ElementKindIcon({ kind }: { kind?: string }): ReactNode {
-  const cls = 'inline-flex h-[14px] w-[14px] items-center justify-center text-[9px] font-bold rounded-[3px] leading-none'
+  const cls = 'inline-flex h-[14px] w-[14px] items-center justify-center text-[9px] font-bold leading-none text-ink-500'
   switch (kind) {
     case 'function':
     case 'method':
       return (
-        <span title={kind} className={`${cls} bg-violet-500/15 text-violet-300`}>
-          ƒ
-        </span>
+        <span title={kind} className={cls}>ƒ</span>
       )
     case 'class':
       return (
-        <span title="class" className={`${cls} bg-amber-500/15 text-amber-300`}>
-          C
-        </span>
+        <span title="class" className={cls}>C</span>
       )
     case 'interface':
       return (
-        <span title="interface" className={`${cls} bg-sky-500/15 text-sky-300`}>
-          I
-        </span>
+        <span title="interface" className={cls}>I</span>
       )
     case 'type':
       return (
-        <span title="type" className={`${cls} bg-sky-500/15 text-sky-300`}>
-          T
-        </span>
+        <span title="type" className={cls}>T</span>
       )
     case 'handler':
       return (
-        <span title="handler" className={`${cls} bg-emerald-500/15 text-emerald-300`}>
-          ▸
-        </span>
+        <span title="handler" className={`${cls} text-edge-event`}>▸</span>
       )
     case 'hook':
       return (
-        <span title="hook" className={`${cls} bg-pink-500/15 text-pink-300`}>
-          ⎈
-        </span>
+        <span title="hook" className={cls}>⎈</span>
       )
     case 'component':
       return (
-        <span title="component" className={`${cls} bg-pink-500/15 text-pink-300`}>
-          ◧
-        </span>
+        <span title="component" className={cls}>◧</span>
       )
     default:
       return <span className="text-ink-500 font-mono text-[10px]">•</span>
@@ -60,13 +46,13 @@ export function ElementKindIcon({ kind }: { kind?: string }): ReactNode {
 export function ExternalKindIcon({ kind }: { kind?: string }): ReactNode {
   switch (kind) {
     case 'store':
-      return <span title="data store" className="text-emerald-300 text-[13px]">🗄</span>
+      return <span title="data store" className="text-edge-event text-[13px]">🗄</span>
     case 'queue':
-      return <span title="queue" className="text-amber-300 text-[13px]">≡</span>
+      return <span title="queue" className="text-warning text-[13px]">≡</span>
     case 'external-service':
-      return <span title="external service" className="text-sky-300 text-[13px]">⬡</span>
+      return <span title="external service" className="text-edge-call text-[13px]">⬡</span>
     case 'cdn':
-      return <span title="cdn" className="text-sky-300 text-[13px]">☁</span>
+      return <span title="cdn" className="text-edge-call text-[13px]">☁</span>
     default:
       return <span className="text-ink-400 text-[13px]">◇</span>
   }
@@ -78,7 +64,7 @@ export function CommentBadge({ count }: { count: number }): ReactNode {
   return (
     <span
       title={`${count} comment${count === 1 ? '' : 's'}`}
-      className="inline-flex items-center justify-center min-w-[16px] h-[15px] px-1 rounded-full bg-accent/20 text-accent text-[10px] font-semibold ring-1 ring-inset ring-accent/30"
+      className="inline-flex items-center justify-center min-w-[15px] h-[15px] px-1 rounded-sm bg-accent-blue/20 text-accent-blue text-[10px] font-medium"
     >
       {count}
     </span>

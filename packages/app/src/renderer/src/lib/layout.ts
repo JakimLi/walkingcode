@@ -233,8 +233,8 @@ export function layout(model: WCModel): PositionedModel {
         color,
       },
       animated: lively,
-      labelStyle: { fontSize: 10, fill: '#aab3c4', fontWeight: 500 },
-      labelBgStyle: { fill: '#0b0d12' },
+      labelStyle: { fontSize: 10, fill: '#999999', fontWeight: 500 },
+      labelBgStyle: { fill: '#181818' },
       labelBgPadding: [3, 3] as [number, number],
       labelBgBorderRadius: 4,
       style: {
@@ -259,12 +259,12 @@ export function layout(model: WCModel): PositionedModel {
 function edgeColor(kind?: string): string {
   switch (kind) {
     case 'call':
-      return '#6ba0ff'
+      return '#3794ff'
     case 'data':
-      return '#b794f6'
+      return '#c586c0'
     case 'event':
-      return '#4ade80'
+      return '#6a9955'
     default:
-      return '#46505f'
+      return '#4e4e4e'
   }
 }

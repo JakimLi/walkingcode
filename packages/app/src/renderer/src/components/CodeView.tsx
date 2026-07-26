@@ -148,28 +148,29 @@ export function CodeView({ selected, onCollapse, canCollapse = true }: CodeViewP
       base: 'vs-dark',
       inherit: true,
       rules: [
-        { token: 'comment', foreground: '525c6e', fontStyle: 'italic' },
-        { token: 'string', foreground: '9ece6a' },
-        { token: 'keyword', foreground: '6ba0ff' },
-        { token: 'number', foreground: 'ff9e64' },
-        { token: 'type', foreground: 'b794f6' },
-        { token: 'function', foreground: '7dcfff' },
+        { token: 'comment', foreground: '6a9955', fontStyle: 'italic' },
+        { token: 'string', foreground: 'ce9178' },
+        { token: 'keyword', foreground: '569cd6' },
+        { token: 'number', foreground: 'b5cea8' },
+        { token: 'type', foreground: '4ec9b0' },
+        { token: 'function', foreground: 'dcdcaa' },
+        { token: 'variable', foreground: '9cdcfe' },
       ],
       colors: {
-        'editor.background': '#0b0d12',
-        'editorGutter.background': '#0b0d12',
-        'editor.lineHighlightBackground': '#10131a',
-        'editorLineNumber.foreground': '#2a313d',
-        'editorLineNumber.activeForeground': '#8b95a7',
-        'editor.selectionBackground': '#1d3a6b',
-        'editor.inactiveSelectionBackground': '#16243f',
-        'editorCursor.foreground': '#6ba0ff',
-        'editorIndentGuide.background1': '#151922',
-        'editorIndentGuide.activeBackground1': '#2a313d',
-        'editorBracketMatch.background': '#1d3a6b55',
-        'editorBracketMatch.border': '#6ba0ff55',
-        'scrollbarSlider.background': '#2a313d80',
-        'scrollbarSlider.hoverBackground': '#3a4250aa',
+        'editor.background': '#1e1e1e',
+        'editorGutter.background': '#1e1e1e',
+        'editor.lineHighlightBackground': '#2a2a2a',
+        'editorLineNumber.foreground': '#4e4e4e',
+        'editorLineNumber.activeForeground': '#858585',
+        'editor.selectionBackground': '#264f78',
+        'editor.inactiveSelectionBackground': '#3a3d41',
+        'editorCursor.foreground': '#aeafad',
+        'editorIndentGuide.background1': '#333333',
+        'editorIndentGuide.activeBackground1': '#4e4e4e',
+        'editorBracketMatch.background': '#264f7855',
+        'editorBracketMatch.border': '#3794ff55',
+        'scrollbarSlider.background': '#3c3c3c80',
+        'scrollbarSlider.hoverBackground': '#4e4e4eaa',
       },
     })
     monaco.editor.setTheme('walkingcode-dark')
@@ -207,8 +208,8 @@ export function CodeView({ selected, onCollapse, canCollapse = true }: CodeViewP
   }
 
   return (
-    <div className="flex flex-col h-full bg-ink-900">
-      <div className="flex items-center gap-2 px-3 h-9 border-b border-ink-700/60 bg-ink-850/50 shrink-0">
+    <div className="flex flex-col h-full bg-surface-inset">
+      <div className="flex items-center gap-2 px-3 h-9 border-b border-border-subtle bg-surface-raised shrink-0">
         <span className="text-ink-500 text-[11px] uppercase tracking-wider font-semibold">Code</span>
         {state.file ? (
           <span className="flex items-center gap-1.5 text-ink-300 text-xs font-mono truncate">
@@ -244,12 +245,12 @@ export function CodeView({ selected, onCollapse, canCollapse = true }: CodeViewP
           </div>
         ) : state.loading ? (
           <div className="p-5 text-ink-500 text-sm flex items-center gap-2.5 wc-fade-in">
-            <div className="h-3.5 w-3.5 rounded-full border-2 border-ink-700 border-t-accent animate-spin" />
+            <div className="h-3.5 w-3.5 rounded-full border-2 border-border-strong border-t-accent-blue animate-spin" />
             Loading {state.file}…
           </div>
         ) : state.error ? (
           <div className="p-5 text-sm wc-fade-in">
-            <div className="flex items-center gap-2 text-red-300 font-medium mb-1">
+            <div className="flex items-center gap-2 text-danger font-medium mb-1">
               <span>Couldn’t read {state.file}</span>
             </div>
             <div className="text-ink-400 text-xs font-mono">{state.error}</div>
@@ -285,8 +286,8 @@ export function CodeView({ selected, onCollapse, canCollapse = true }: CodeViewP
 function EmptyHint(): React.JSX.Element {
   return (
     <div className="h-full flex flex-col items-center justify-center p-8 text-center wc-fade-in">
-      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-ink-850 ring-1 ring-inset ring-ink-700 mb-3">
-        <span className="text-ink-500 text-lg">‹/›</span>
+      <div className="flex h-11 w-11 items-center justify-center rounded-md bg-surface-raised border border-border-subtle mb-3">
+        <span className="text-ink-500 text-base">‹/›</span>
       </div>
       <div className="text-ink-300 font-medium mb-1">No code selected</div>
       <div className="text-ink-500 text-xs max-w-[200px]">

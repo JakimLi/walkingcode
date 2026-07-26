@@ -28,8 +28,8 @@ export function CollapseButton({
       className={[
         'app-no-drag flex h-6 w-6 items-center justify-center rounded-md transition-colors',
         canCollapse
-          ? 'text-ink-500 hover:text-ink-100 hover:bg-white/[0.06] cursor-pointer'
-          : 'text-ink-700 cursor-not-allowed',
+          ? 'text-ink-500 hover:text-ink-100 hover:bg-surface-overlay cursor-pointer'
+          : 'text-ink-600 cursor-not-allowed',
       ].join(' ')}
     >
       {chevron === 'right' ? (

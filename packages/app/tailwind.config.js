@@ -4,42 +4,58 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Refined Graphite — a calmer, more layered dark palette with a cool
-        // blue undertone. Existing keys (ink-950…200, accent) are kept so all
-        // current class references still resolve; values are tuned for depth.
+        // Warm charcoal — VS Code / Copilot inspired.
+        // Neutral grey with a barely-perceptible warm tilt; the surfaces step
+        // gently (2-3 hex apart) so panels read as layered, not flat-black.
         ink: {
-          950: '#08090c', // deepest canvas
-          900: '#0b0d12', // app background
-          850: '#10131a', // panel / card surface
-          800: '#151922', // raised surface / hover
-          750: '#1b2029', // hairline divider alt
-          700: '#232934', // hairline border
-          600: '#3a4250', // muted text / scrollbar
-          500: '#525c6e', // secondary text
-          400: '#8b95a7', // tertiary text
-          300: '#aab3c4', // body text
-          200: '#d4dbe6', // primary text
-          100: '#eef1f7', // headings
+          950: '#141414',
+          900: '#181818', // app canvas
+          850: '#1c1c1c',
+          800: '#1e1e1e', // primary surface (editor area)
+          750: '#232323',
+          700: '#252526', // raised panel / sidebar
+          650: '#2a2a2b',
+          600: '#2d2d2d', // hairline borders
+          550: '#333333', // emphasis borders / scrollbar
+          500: '#3c3c3c', // hover surface
+          450: '#4e4e4e', // muted icons
+          400: '#6e6e6e', // tertiary text
+          350: '#858585', // secondary text
+          300: '#999999',
+          200: '#cccccc', // primary text
+          150: '#e0e0e0',
+          100: '#f5f5f5', // headings / bright text
+        },
+        // semantic surface tokens
+        surface: {
+          base: '#181818', // app background
+          raised: '#1e1e1e', // editor / main content
+          panel: '#252526', // sidebar / panel surfaces
+          overlay: '#2d2d2d', // hover / popover
+          inset: '#141414', // recessed / input fields
+        },
+        border: {
+          subtle: '#2d2d2d', // hairline dividers
+          DEFAULT: '#333333', // standard borders
+          strong: '#3c3c3c', // emphasis borders
         },
         accent: {
-          DEFAULT: '#6ba0ff',
-          soft: '#3a5fa8',
-          glow: '#6ba0ff',
+          DEFAULT: '#3794ff', // VS Code blue — primary interactive
+          soft: '#0e639c',
+          glow: '#3794ff',
+          blue: '#3794ff',
         },
         // semantic edge colors (kept in sync with layout.ts edgeColor)
         edge: {
-          call: '#6ba0ff',
-          data: '#b794f6',
-          event: '#4ade80',
-          muted: '#3a4250',
+          call: '#3794ff',
+          data: '#c586c0', // VS Code purple for control-flow
+          event: '#6a9955', // VS Code green for strings/data
+          muted: '#3c3c3c',
         },
-      },
-      boxShadow: {
-        card: '0 1px 2px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.02)',
-        'card-hover':
-          '0 8px 24px -8px rgba(0,0,0,0.6), 0 0 0 1px rgba(107,160,255,0.25)',
-        panel: '0 12px 40px -12px rgba(0,0,0,0.7)',
-        focus: '0 0 0 3px rgba(107,160,255,0.22)',
+        // state colors (VS Code palette)
+        danger: '#f48771',
+        warning: '#cca700',
+        success: '#6a9955',
       },
       fontFamily: {
         mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'],

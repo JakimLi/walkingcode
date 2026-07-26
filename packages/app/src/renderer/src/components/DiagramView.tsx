@@ -73,19 +73,20 @@ function DiagramInner(props: DiagramViewProps): React.JSX.Element {
         maxZoom={1.8}
         proOptions={{ hideAttribution: true }}
       >
-        <Background gap={26} size={1} color="#1a1f29" />
+        <Background gap={24} size={1} color="#262626" />
         <MiniMap
           pannable
           zoomable
-          maskColor="rgba(8,9,12,0.72)"
+          maskColor="rgba(20,20,20,0.7)"
           style={{ background: 'transparent' }}
           nodeColor={(n) => {
             const kind = (n.data as { wc?: { kind?: string } })?.wc?.kind
-            if (kind === 'module') return '#2a3243'
-            if (kind === 'external') return '#1f2530'
-            return '#14181f'
+            if (kind === 'module') return '#2d2d2d'
+            if (kind === 'external') return '#333333'
+            return '#252526'
           }}
-          nodeStrokeWidth={0}
+          nodeStrokeWidth={1}
+          nodeStroke="#3c3c3c"
         />
         <Controls showInteractive={false} position={6 /* BottomRight */} />
       </ReactFlow>
