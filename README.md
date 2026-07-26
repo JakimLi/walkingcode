@@ -13,15 +13,11 @@ where **every node links to the exact code behind it**. Click a node, read the
 code, leave a comment. The agent reads the comments back and iterates. Review
 regains its spine.
 
-```
-   agent ──generates──▶ architecture ──▶ GUI: diagram + code
-   reads repo             description         │
-                                            ┌──┴──┐
-                          user reviews ◀──── │     │ leaves comments
-                            the diagram      │     │
-                                                ▼
-   agent ◀── reads comments ── sidecar.json ◀─┘
-```
+![WalkingCode GUI — architecture diagram with clickable code and comments](./docs/images/demo.jpg)
+
+**The loop:** an agent generates the architecture description → the GUI renders
+the diagram with code one click away → you review and leave comments anchored to
+nodes → the agent reads them back and iterates.
 
 ## The problem
 
