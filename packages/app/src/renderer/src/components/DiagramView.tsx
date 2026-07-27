@@ -57,9 +57,9 @@ export interface DiagramViewProps {
 
 function DiagramInner(props: DiagramViewProps): React.JSX.Element {
   const { doc, comments, selectedElementId, onSelect } = props
-  // theme drives a re-render so the RF canvas colours re-read CSS vars
+  // theme drives a re-render so the RF canvas colours re-read CSS vars; the
+  // key={theme} on Background/MiniMap forces a re-mount.
   const { theme } = useTheme()
-  void theme
 
   const positioned = useMemo<PositionedModel>(() => {
     if (doc.kind === 'sequence') {

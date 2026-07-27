@@ -37,9 +37,12 @@ export function applyTheme(theme: Theme): void {
 export function ThemeProvider({ children }: { children: React.ReactNode }): React.JSX.Element {
   const [theme, setTheme] = useState<Theme>(readInitialTheme)
 
-  // keep the DOM attribute in sync
+  // keep the DOM attribute in sync. applyTheme runs in the render body (not in
+  // an effect) so the CSS variables are updated *before* children render —
+  // otherwise DiagramView's cssVar() calls would read the previous theme's
+  // values during the render pass.
+  applyTheme(theme)
   useEffect(() => {
-    applyTheme(theme)
     try {
       localStorage.setItem(THEME_KEY, theme)
     } catch {
