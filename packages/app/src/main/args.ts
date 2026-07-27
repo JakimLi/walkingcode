@@ -115,9 +115,18 @@ export function parseLaunchArgs(argv: string[] = process.argv, env: NodeJS.Proce
   // electron-vite sets ELECTRON_RENDERER_URL only in dev mode
   if (env.ELECTRON_RENDERER_URL) dev = true
 
-  // dev fallback: no arch file provided → use the bundled example
+  // dev fallback: no arch file provided → use the bundled example.
+  // WALKINGCODE_DEV_ARCH may be either a diagram kind ("layered"/"sequence")
+  // or a direct path to an arch file (so `WALKINGCODE_DEV_ARCH=x.json npm run
+  // dev` works — electron-vite eats argv positionals/flags, so env is the only
+  // way to pass a custom file through `npm run dev`).
   if (!archFile && dev) {
-    archFile = resolveDevDefaultArch(devKind ?? env.WALKINGCODE_DEV_ARCH ?? undefined)
+    const devArch = devKind ?? env.WALKINGCODE_DEV_ARCH ?? undefined
+    if (devArch && existsSync(devArch)) {
+      archFile = devArch
+    } else {
+      archFile = resolveDevDefaultArch(devArch)
+    }
   }
 
   return { archFile, repo, dev }
