@@ -19,6 +19,16 @@ import { MarkerType } from '@xyflow/react'
 import type { Edge, Node } from '@xyflow/react'
 import type { WCEntry, WCModel, WCNode } from './model.js'
 
+/** Read a CSS custom property for the active theme (fallback for non-DOM contexts). */
+function cssVar(name: string, fallback: string): string {
+  try {
+    const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+    return v || fallback
+  } catch {
+    return fallback
+  }
+}
+
 // Visual constants (px).
 // These are calibrated to match the rendered DOM in ModuleNode/BandNode —
 // header padding + font line heights + element row padding + borders. If you
@@ -233,8 +243,8 @@ export function layout(model: WCModel): PositionedModel {
         color,
       },
       animated: lively,
-      labelStyle: { fontSize: 10, fill: '#999999', fontWeight: 500 },
-      labelBgStyle: { fill: '#181818' },
+      labelStyle: { fontSize: 10, fill: cssVar('--wc-edge-label', '#b8b8b8'), fontWeight: 500 },
+      labelBgStyle: { fill: cssVar('--wc-edge-label-bg', '#181818') },
       labelBgPadding: [3, 3] as [number, number],
       labelBgBorderRadius: 4,
       style: {

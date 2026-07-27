@@ -8,6 +8,8 @@ import { useState } from 'react'
 import type { ParseWarning } from '@wc-schema'
 import type { LayeredDocument } from '@wc-schema'
 import { WindowControls } from './WindowControls.js'
+import { useTheme } from '../theme.js'
+import { Sun, Moon } from './Icon.js'
 
 export interface ToolbarProps {
   doc: LayeredDocument | null
@@ -24,6 +26,7 @@ const isMac =
 
 export function Toolbar({ doc, repo, archFile, warnings, commentCount, onReload }: ToolbarProps): React.JSX.Element {
   const [showWarnings, setShowWarnings] = useState(false)
+  const { theme, toggleTheme } = useTheme()
   return (
     <div className="relative flex items-center gap-3 h-10 px-3 border-b border-border-subtle bg-surface-raised shrink-0 app-drag">
       {/* title cluster — macOS reserves space on the left for traffic lights */}
@@ -70,6 +73,17 @@ export function Toolbar({ doc, repo, archFile, warnings, commentCount, onReload 
         disabled={warnings.length === 0}
       >
         ⚠ {warnings.length}
+      </button>
+
+      {/* theme toggle */}
+      <button
+        type="button"
+        onClick={toggleTheme}
+        className="app-no-drag flex h-7 w-7 items-center justify-center rounded-md text-ink-400 hover:text-ink-100 hover:bg-surface-overlay transition-colors"
+        title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+        aria-label="Toggle theme"
+      >
+        {theme === 'dark' ? <Sun /> : <Moon />}
       </button>
 
       {showWarnings && warnings.length > 0 ? (

@@ -52,7 +52,7 @@ function MessageImpl({ data, width, selected }: NodeProps): React.JSX.Element {
         className={[
           'absolute inset-0 flex items-center transition-colors',
           clickable ? 'cursor-pointer' : 'cursor-default',
-          isSel || selected ? 'bg-accent-blue/10' : 'hover:bg-white/[0.03]',
+          isSel || selected ? 'bg-accent-blue/10' : 'hover:bg-surface-overlay/40',
         ].join(' ')}
         title={wc.description ?? wc.name}
       >

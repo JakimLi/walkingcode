@@ -18,6 +18,7 @@ import { DiagramView } from './components/DiagramView'
 import { CodeView } from './components/CodeView'
 import { CommentsPanel } from './components/CommentsPanel'
 import { PanelRail } from './components/PanelRail'
+import { ChevronLeft } from './components/Icon'
 
 interface Loaded {
   archFile: string | null
@@ -233,9 +234,7 @@ export default function App(): React.JSX.Element {
                       : 'bg-surface-raised text-ink-500 hover:text-ink-100 hover:border-border-strong cursor-pointer',
                   ].join(' ')}
                 >
-                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                    <path d="M8 3L4 6.5L8 10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
+                  <ChevronLeft />
                 </button>
               </div>
             </>

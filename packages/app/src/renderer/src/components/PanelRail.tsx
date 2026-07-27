@@ -5,6 +5,8 @@
  * Clicking anywhere on the rail restores the panel. The chevron direction
  * points toward where the panel will re-expand.
  */
+import { ChevronRight, ChevronLeft } from './Icon.js'
+
 export interface PanelRailProps {
   /** Vertical label shown down the strip. */
   label: string
@@ -35,15 +37,7 @@ export function PanelRail({ label, chevron, onExpand }: PanelRailProps): React.J
     >
       {/* expand chevron — pinned to the top, upright */}
       <span className="flex h-6 w-6 items-center justify-center rounded-md text-ink-500 group-hover:text-accent-blue transition-colors">
-        {chevron === 'right' ? (
-          <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-            <path d="M5 3L9 6.5L5 10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        ) : (
-          <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-            <path d="M8 3L4 6.5L8 10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        )}
+        {chevron === 'right' ? <ChevronRight /> : <ChevronLeft />}
       </span>
 
       {/* vertical label — centred in the remaining height */}

@@ -6,11 +6,22 @@
     <!-- CSP: allow inline styles (Monaco/Framer inject them) but no remote. -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; worker-src 'self' blob:;"
+      content="default-src 'self'; script-src 'self' 'sha256-oubG1UBQhM3dsHh/c/ENgJp6AJ8GGR1FtsrrOjm7664='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; worker-src 'self' blob:;"
     />
     <title>WalkingCode</title>
   </head>
-  <body class="bg-ink-900 text-ink-200">
+  <body>
+    <!-- apply the saved theme before React mounts to avoid a flash of wrong theme -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('wc:theme');
+          document.documentElement.setAttribute('data-theme', t === 'light' ? 'light' : 'dark');
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="./src/main.tsx"></script>
   </body>

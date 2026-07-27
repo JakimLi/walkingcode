@@ -3,6 +3,8 @@
  * down to a rail. Shared by Code, Comments, and the Diagram overlay so the
  * affordance stays consistent.
  */
+import { ChevronRight, ChevronLeft } from './Icon.js'
+
 export interface CollapseButtonProps {
   onCollapse?: () => void
   /** Disabled when this is the last open panel (can't collapse to zero). */
@@ -32,15 +34,7 @@ export function CollapseButton({
           : 'text-ink-600 cursor-not-allowed',
       ].join(' ')}
     >
-      {chevron === 'right' ? (
-        <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-          <path d="M5 3L9 6.5L5 10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      ) : (
-        <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-          <path d="M8 3L4 6.5L8 10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      )}
+      {chevron === 'right' ? <ChevronRight /> : <ChevronLeft />}
     </button>
   )
 }

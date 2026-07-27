@@ -9,6 +9,8 @@
  * The whole group is marked no-drag so clicks register (the toolbar around it
  * is a drag region).
  */
+import { WinMinimize, WinMaximize, WinClose } from './Icon.js'
+
 export function WindowControls(): React.JSX.Element | null {
   // platform is injected by the preload; fall back to 'darwin' so we never show
   // duplicate buttons when the bridge isn't available (e.g. a stray web build).
@@ -23,9 +25,7 @@ export function WindowControls(): React.JSX.Element | null {
         title="Minimize"
         className="flex h-7 w-7 items-center justify-center rounded-md text-ink-400 hover:bg-surface-overlay hover:text-ink-100 transition-colors"
       >
-        <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-          <rect x="1" y="5" width="9" height="1" rx="0.5" fill="currentColor" />
-        </svg>
+        <WinMinimize />
       </button>
       <button
         type="button"
@@ -33,9 +33,7 @@ export function WindowControls(): React.JSX.Element | null {
         title="Toggle maximize"
         className="flex h-7 w-7 items-center justify-center rounded-md text-ink-400 hover:bg-surface-overlay hover:text-ink-100 transition-colors"
       >
-        <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-          <rect x="1.5" y="1.5" width="8" height="8" rx="1" stroke="currentColor" strokeWidth="1" />
-        </svg>
+        <WinMaximize />
       </button>
       <button
         type="button"
@@ -43,9 +41,7 @@ export function WindowControls(): React.JSX.Element | null {
         title="Close"
         className="flex h-7 w-7 items-center justify-center rounded-md text-ink-400 hover:bg-danger/80 hover:text-white transition-colors"
       >
-        <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-          <path d="M2 2L9 9M9 2L2 9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-        </svg>
+        <WinClose />
       </button>
     </div>
   )

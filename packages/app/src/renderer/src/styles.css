@@ -2,6 +2,100 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================
+   THEME VARIABLES — switched by [data-theme] on <html>.
+   All Tailwind color tokens resolve to these, so the whole app
+   flips by changing one attribute.
+   ============================================================ */
+:root,
+[data-theme='dark'] {
+  --wc-ink-100: #f5f5f5;
+  --wc-ink-150: #e0e0e0;
+  --wc-ink-200: #d4d4d4; /* primary text — lifted from #ccc for readability */
+  --wc-ink-300: #b8b8b8; /* secondary text — lifted from #999 */
+  --wc-ink-400: #909090; /* tertiary text/icons — lifted from #6e6e6e */
+  --wc-ink-500: #6a6a6a; /* muted — lifted from #3c3c3c */
+  --wc-ink-600: #565656;
+  --wc-ink-700: #2d2d2d;
+  --wc-ink-850: #1c1c1c;
+  --wc-ink-900: #181818;
+  --wc-ink-950: #141414;
+
+  --wc-surface-base: #181818;
+  --wc-surface-raised: #1e1e1e;
+  --wc-surface-panel: #252526;
+  --wc-surface-overlay: #2d2d2d;
+  --wc-surface-inset: #141414;
+
+  --wc-border-subtle: #2d2d2d;
+  --wc-border: #383838; /* lifted from #333 for visibility */
+  --wc-border-strong: #4a4a4a; /* lifted from #3c3c3c */
+
+  --wc-accent: #3794ff;
+  --wc-accent-soft: #0e639c;
+
+  --wc-danger: #f48771;
+  --wc-warning: #cca700;
+  --wc-success: #6a9955;
+
+  --wc-shadow: rgba(0, 0, 0, 0.3);
+  --wc-rf-bg-dot: #262626;
+  --wc-rf-minimap-node: #2d2d2d;
+  --wc-rf-minimap-external: #383838;
+  --wc-rf-minimap-band: #252526;
+  --wc-rf-minimap-stroke: #4a4a4a;
+  --wc-rf-minimap-mask: rgba(20, 20, 20, 0.7);
+  --wc-rf-controls-bg: #252526;
+  --wc-scrollbar: #3c3c3c;
+  --wc-scrollbar-hover: #505050;
+  --wc-edge-label: #b8b8b8;
+  --wc-edge-label-bg: #181818;
+}
+
+[data-theme='light'] {
+  --wc-ink-100: #1e1e1e;
+  --wc-ink-150: #2a2a2a;
+  --wc-ink-200: #333333; /* primary text */
+  --wc-ink-300: #555555; /* secondary text */
+  --wc-ink-400: #757575; /* tertiary text/icons */
+  --wc-ink-500: #999999; /* muted */
+  --wc-ink-600: #b0b0b0;
+  --wc-ink-700: #d0d0d0;
+  --wc-ink-850: #e8e8e8;
+  --wc-ink-900: #f0f0f0;
+  --wc-ink-950: #f8f8f8;
+
+  --wc-surface-base: #f8f8f8;
+  --wc-surface-raised: #ffffff;
+  --wc-surface-panel: #f0f0f0;
+  --wc-surface-overlay: #e4e4e4;
+  --wc-surface-inset: #efefef;
+
+  --wc-border-subtle: #e0e0e0;
+  --wc-border: #cccccc;
+  --wc-border-strong: #999999;
+
+  --wc-accent: #0066cc;
+  --wc-accent-soft: #0e639c;
+
+  --wc-danger: #c0392b;
+  --wc-warning: #b8860b;
+  --wc-success: #2e7d32;
+
+  --wc-shadow: rgba(0, 0, 0, 0.12);
+  --wc-rf-bg-dot: #d8d8d8;
+  --wc-rf-minimap-node: #c4c4c4;
+  --wc-rf-minimap-external: #b0b0b0;
+  --wc-rf-minimap-band: #d8d8d8;
+  --wc-rf-minimap-stroke: #888888;
+  --wc-rf-minimap-mask: rgba(255, 255, 255, 0.65);
+  --wc-rf-controls-bg: #ffffff;
+  --wc-scrollbar: #c0c0c0;
+  --wc-scrollbar-hover: #999999;
+  --wc-edge-label: #555555;
+  --wc-edge-label-bg: #f8f8f8;
+}
+
 /* Base reset for the Electron window. */
 html,
 body,
@@ -18,9 +112,8 @@ body {
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
     sans-serif;
   user-select: none;
-  /* warm charcoal canvas */
-  background: #181818;
-  color: #cccccc;
+  background: var(--wc-surface-base);
+  color: var(--wc-ink-200);
 }
 
 /* allow text selection in code/comments */
@@ -33,21 +126,21 @@ textarea,
 /* ---- app-wide focus ring helper ---- */
 .wc-focus:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 1.5px #3794ff;
+  box-shadow: 0 0 0 1.5px var(--wc-accent);
 }
 
 /* Monaco line highlight (matches decoration class in CodeView) */
 .wc-line-highlight {
-  background: rgba(55, 148, 255, 0.14) !important;
-  border-left: 2px solid #3794ff;
+  background: color-mix(in srgb, var(--wc-accent) 14%, transparent) !important;
+  border-left: 2px solid var(--wc-accent);
 }
 
 /* ============================================================
-   React Flow theming — warm charcoal
+   React Flow theming
    ============================================================ */
 .react-flow {
   --xy-background-color: transparent;
-  --xy-edge-stroke-default: #3c3c3c;
+  --xy-edge-stroke-default: var(--wc-border-strong);
   background: transparent;
 }
 
@@ -57,29 +150,29 @@ textarea,
 }
 
 .react-flow__edge-textbg {
-  fill: #181818;
+  fill: var(--wc-edge-label-bg);
 }
 
 /* controls — flat with subtle border */
 .react-flow__controls {
-  background: #252526;
-  border: 1px solid #333333;
+  background: var(--wc-rf-controls-bg);
+  border: 1px solid var(--wc-border);
   border-radius: 4px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 8px var(--wc-shadow);
 }
 
 .react-flow__controls-button {
   background: transparent;
-  border-bottom: 1px solid #333333;
-  fill: #858585;
+  border-bottom: 1px solid var(--wc-border-subtle);
+  fill: var(--wc-ink-400);
   width: 26px;
   height: 26px;
 }
 
 .react-flow__controls-button:hover {
-  background: #2d2d2d;
-  fill: #cccccc;
+  background: var(--wc-surface-overlay);
+  fill: var(--wc-ink-200);
 }
 
 .react-flow__controls-button svg {
@@ -91,9 +184,9 @@ textarea,
 .react-flow__minimap {
   border-radius: 4px;
   overflow: hidden;
-  border: 1px solid #333333;
-  background: #1e1e1e !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--wc-border);
+  background: var(--wc-surface-raised) !important;
+  box-shadow: 0 2px 8px var(--wc-shadow);
 }
 
 .react-flow__attribution {
@@ -107,8 +200,8 @@ textarea,
 
 /* selected nodes get a soft accent border + glow */
 .react-flow__node.selected .wc-node-surface {
-  border-color: #3794ff;
-  box-shadow: 0 0 0 1px #3794ff, 0 2px 8px rgba(55, 148, 255, 0.2);
+  border-color: var(--wc-accent);
+  box-shadow: 0 0 0 1px var(--wc-accent), 0 2px 8px color-mix(in srgb, var(--wc-accent) 25%, transparent);
 }
 
 /* ============================================================
@@ -122,22 +215,22 @@ textarea,
 }
 
 /* ============================================================
-   Scrollbars — VS Code style
+   Scrollbars
    ============================================================ */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #3c3c3c transparent;
+  scrollbar-color: var(--wc-scrollbar) transparent;
 }
 *::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 *::-webkit-scrollbar-thumb {
-  background: #3c3c3c;
+  background: var(--wc-scrollbar);
   border-radius: 0;
 }
 *::-webkit-scrollbar-thumb:hover {
-  background: #4e4e4e;
+  background: var(--wc-scrollbar-hover);
 }
 *::-webkit-scrollbar-track {
   background: transparent;

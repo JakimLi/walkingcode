@@ -10,6 +10,7 @@ import * as monacoEditor from 'monaco-editor'
 import type { editor as MonacoEditor, IRange } from 'monaco-editor'
 import type { WCNode } from '../lib/model.js'
 import { CollapseButton } from './CollapseButton.js'
+import { useTheme, type Theme } from '../theme.js'
 
 // Offline Monaco: hand the bundled ESM monaco instance to @monaco-editor/react
 // so it doesn't try to fetch from a CDN. Workers are configured below via the
@@ -95,7 +96,72 @@ function detectLanguage(file: string): string {
   return LANGUAGE_BY_EXT[ext] ?? 'plaintext'
 }
 
+const THEME_NAME: Record<Theme, string> = { dark: 'walkingcode-dark', light: 'walkingcode-light' }
+
+/** Define both Monaco themes on the editor instance. */
+function defineMonacoThemes(monaco: typeof monacoEditor): void {
+  monaco.editor.defineTheme('walkingcode-dark', {
+    base: 'vs-dark',
+    inherit: true,
+    rules: [
+      { token: 'comment', foreground: '6a9955', fontStyle: 'italic' },
+      { token: 'string', foreground: 'ce9178' },
+      { token: 'keyword', foreground: '569cd6' },
+      { token: 'number', foreground: 'b5cea8' },
+      { token: 'type', foreground: '4ec9b0' },
+      { token: 'function', foreground: 'dcdcaa' },
+      { token: 'variable', foreground: '9cdcfe' },
+    ],
+    colors: {
+      'editor.background': '#1e1e1e',
+      'editorGutter.background': '#1e1e1e',
+      'editor.lineHighlightBackground': '#2a2a2a',
+      'editorLineNumber.foreground': '#4e4e4e',
+      'editorLineNumber.activeForeground': '#858585',
+      'editor.selectionBackground': '#264f78',
+      'editor.inactiveSelectionBackground': '#3a3d41',
+      'editorCursor.foreground': '#aeafad',
+      'editorIndentGuide.background1': '#333333',
+      'editorIndentGuide.activeBackground1': '#4e4e4e',
+      'editorBracketMatch.background': '#264f7855',
+      'editorBracketMatch.border': '#3794ff55',
+      'scrollbarSlider.background': '#3c3c3c80',
+      'scrollbarSlider.hoverBackground': '#4e4e4eaa',
+    },
+  })
+  monaco.editor.defineTheme('walkingcode-light', {
+    base: 'vs',
+    inherit: true,
+    rules: [
+      { token: 'comment', foreground: '008000', fontStyle: 'italic' },
+      { token: 'string', foreground: 'a31515' },
+      { token: 'keyword', foreground: '0000ff' },
+      { token: 'number', foreground: '098658' },
+      { token: 'type', foreground: '267f99' },
+      { token: 'function', foreground: '795e26' },
+      { token: 'variable', foreground: '001080' },
+    ],
+    colors: {
+      'editor.background': '#ffffff',
+      'editorGutter.background': '#ffffff',
+      'editor.lineHighlightBackground': '#f0f0f0',
+      'editorLineNumber.foreground': '#999999',
+      'editorLineNumber.activeForeground': '#555555',
+      'editor.selectionBackground': '#add6ff',
+      'editor.inactiveSelectionBackground': '#cce5ff',
+      'editorCursor.foreground': '#333333',
+      'editorIndentGuide.background1': '#e0e0e0',
+      'editorIndentGuide.activeBackground1': '#bbbbbb',
+      'editorBracketMatch.background': '#add6ff55',
+      'editorBracketMatch.border': '#0066cc55',
+      'scrollbarSlider.background': '#c0c0c080',
+      'scrollbarSlider.hoverBackground': '#999999aa',
+    },
+  })
+}
+
 export function CodeView({ selected, onCollapse, canCollapse = true }: CodeViewProps): React.JSX.Element {
+  const { theme } = useTheme()
   const [state, setState] = useState<CodeState>({
     loading: false,
     error: null,
@@ -143,37 +209,8 @@ export function CodeView({ selected, onCollapse, canCollapse = true }: CodeViewP
 
   const handleMount: OnMount = (ed, monaco) => {
     editorRef.current = ed
-    // define a theme that matches the app
-    monaco.editor.defineTheme('walkingcode-dark', {
-      base: 'vs-dark',
-      inherit: true,
-      rules: [
-        { token: 'comment', foreground: '6a9955', fontStyle: 'italic' },
-        { token: 'string', foreground: 'ce9178' },
-        { token: 'keyword', foreground: '569cd6' },
-        { token: 'number', foreground: 'b5cea8' },
-        { token: 'type', foreground: '4ec9b0' },
-        { token: 'function', foreground: 'dcdcaa' },
-        { token: 'variable', foreground: '9cdcfe' },
-      ],
-      colors: {
-        'editor.background': '#1e1e1e',
-        'editorGutter.background': '#1e1e1e',
-        'editor.lineHighlightBackground': '#2a2a2a',
-        'editorLineNumber.foreground': '#4e4e4e',
-        'editorLineNumber.activeForeground': '#858585',
-        'editor.selectionBackground': '#264f78',
-        'editor.inactiveSelectionBackground': '#3a3d41',
-        'editorCursor.foreground': '#aeafad',
-        'editorIndentGuide.background1': '#333333',
-        'editorIndentGuide.activeBackground1': '#4e4e4e',
-        'editorBracketMatch.background': '#264f7855',
-        'editorBracketMatch.border': '#3794ff55',
-        'scrollbarSlider.background': '#3c3c3c80',
-        'scrollbarSlider.hoverBackground': '#4e4e4eaa',
-      },
-    })
-    monaco.editor.setTheme('walkingcode-dark')
+    defineMonacoThemes(monaco)
+    monaco.editor.setTheme(THEME_NAME[theme])
     applyDecoration()
     // When @monaco-editor/react swaps the model (path changes), re-reveal the
     // current range once the new model is attached. Without this, switching to a
@@ -184,6 +221,14 @@ export function CodeView({ selected, onCollapse, canCollapse = true }: CodeViewP
       }
     })
   }
+
+  // switch Monaco theme when the app theme changes
+  useEffect(() => {
+    const ed = editorRef.current
+    if (ed) ed.updateOptions({})
+    // monaco theme must be set via the monaco global, not the editor instance
+    monacoEditor.editor.setTheme(THEME_NAME[theme])
+  }, [theme])
 
   // when text/range change, reveal + decorate
   useEffect(() => {
@@ -275,7 +320,7 @@ export function CodeView({ selected, onCollapse, canCollapse = true }: CodeViewP
             language={state.file ? detectLanguage(state.file) : undefined}
             value={state.text}
             onMount={handleMount}
-            theme="walkingcode-dark"
+            theme={THEME_NAME[theme]}
             options={{
               readOnly: true,
               domReadOnly: true,

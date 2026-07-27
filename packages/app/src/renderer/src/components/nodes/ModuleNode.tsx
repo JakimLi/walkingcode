@@ -26,7 +26,7 @@ function ModuleImpl({ data, width, height, selected }: NodeProps): React.JSX.Ele
       transition={{ duration: 0.15 }}
       style={{ width, height }}
       className={[
-        'wc-node-surface flex flex-col overflow-hidden rounded-md border bg-surface-panel shadow-[0_2px_6px_rgba(0,0,0,0.25)]',
+        'wc-node-surface flex flex-col overflow-hidden rounded-md border bg-surface-panel shadow-[0_2px_6px_var(--wc-shadow)]',
         selected ? 'border-accent-blue' : 'border-border hover:border-border-strong',
       ].join(' ')}
     >

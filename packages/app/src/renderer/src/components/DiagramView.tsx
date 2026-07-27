@@ -33,6 +33,12 @@ import { ExternalNode } from './nodes/ExternalNode.js'
 import { ParticipantNode } from './nodes/ParticipantNode.js'
 import { MessageNode } from './nodes/MessageNode.js'
 import { DiagramCtx } from './nodes/diagramCtx.js'
+import { useTheme } from '../theme.js'
+
+/** Read a CSS custom property value (resolves at call time from the active theme). */
+function cssVar(name: string): string {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+}
 
 const nodeTypes: NodeTypes = {
   wcBand: BandNode as unknown as NodeTypes[string],
@@ -51,6 +57,9 @@ export interface DiagramViewProps {
 
 function DiagramInner(props: DiagramViewProps): React.JSX.Element {
   const { doc, comments, selectedElementId, onSelect } = props
+  // theme drives a re-render so the RF canvas colours re-read CSS vars
+  const { theme } = useTheme()
+  void theme
 
   const positioned = useMemo<PositionedModel>(() => {
     if (doc.kind === 'sequence') {
@@ -89,20 +98,24 @@ function DiagramInner(props: DiagramViewProps): React.JSX.Element {
         maxZoom={1.8}
         proOptions={{ hideAttribution: true }}
       >
-        <Background gap={24} size={1} color="#262626" />
+        <Background key={'bg-' + theme} gap={24} size={1} color={cssVar('--wc-rf-bg-dot')} />
+        {/* key on theme forces MiniMap/Background to re-mount (and re-read the
+            cssVar colours) when the theme switches — React Flow caches the
+            nodeColor callback results otherwise. */}
         <MiniMap
+          key={'mm-' + theme}
           pannable
           zoomable
-          maskColor="rgba(20,20,20,0.7)"
+          maskColor={cssVar('--wc-rf-minimap-mask')}
           style={{ background: 'transparent' }}
           nodeColor={(n) => {
             const kind = (n.data as { wc?: { kind?: string } })?.wc?.kind
-            if (kind === 'module') return '#2d2d2d'
-            if (kind === 'external') return '#333333'
-            return '#252526'
+            if (kind === 'module') return cssVar('--wc-rf-minimap-node')
+            if (kind === 'external') return cssVar('--wc-rf-minimap-external')
+            return cssVar('--wc-rf-minimap-band')
           }}
           nodeStrokeWidth={1}
-          nodeStroke="#3c3c3c"
+          nodeStroke={cssVar('--wc-rf-minimap-stroke')}
         />
         <Controls showInteractive={false} position={6 /* BottomRight */} />
       </ReactFlow>

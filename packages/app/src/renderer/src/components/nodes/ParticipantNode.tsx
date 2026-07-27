@@ -27,7 +27,7 @@ function ParticipantImpl({ data, width, height, selected }: NodeProps): React.JS
         disabled={!clickable}
         onClick={() => clickable && onSelect(wc)}
         className={[
-          'flex flex-col items-center gap-0.5 rounded-md border bg-surface-panel px-3 py-2 shadow-[0_2px_6px_rgba(0,0,0,0.25)] transition-colors',
+          'flex flex-col items-center gap-0.5 rounded-md border bg-surface-panel px-3 py-2 shadow-[0_2px_6px_var(--wc-shadow)] transition-colors',
           selected ? 'border-accent-blue' : 'border-border hover:border-border-strong',
           clickable ? 'cursor-pointer' : 'cursor-default',
         ].join(' ')}

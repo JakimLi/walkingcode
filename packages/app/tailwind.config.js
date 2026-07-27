@@ -1,61 +1,56 @@
 /** @type {import('tailwindcss').Config} */
+//
+// Colors resolve to CSS variables (defined in styles.css) so a `data-theme`
+// attribute on <html> flips the whole palette. Class names stay identical —
+// components never change.
 export default {
   content: ['./src/renderer/index.html', './src/renderer/src/**/*.{ts,tsx}'],
   theme: {
     extend: {
       colors: {
-        // Warm charcoal — VS Code / Copilot inspired.
-        // Neutral grey with a barely-perceptible warm tilt; the surfaces step
-        // gently (2-3 hex apart) so panels read as layered, not flat-black.
+        // numeric text/icon ramp — only the stops we actually use are variables
         ink: {
-          950: '#141414',
-          900: '#181818', // app canvas
-          850: '#1c1c1c',
-          800: '#1e1e1e', // primary surface (editor area)
-          750: '#232323',
-          700: '#252526', // raised panel / sidebar
-          650: '#2a2a2b',
-          600: '#2d2d2d', // hairline borders
-          550: '#333333', // emphasis borders / scrollbar
-          500: '#3c3c3c', // hover surface
-          450: '#4e4e4e', // muted icons
-          400: '#6e6e6e', // tertiary text
-          350: '#858585', // secondary text
-          300: '#999999',
-          200: '#cccccc', // primary text
-          150: '#e0e0e0',
-          100: '#f5f5f5', // headings / bright text
+          100: 'var(--wc-ink-100)',
+          150: 'var(--wc-ink-150)',
+          200: 'var(--wc-ink-200)',
+          300: 'var(--wc-ink-300)',
+          400: 'var(--wc-ink-400)',
+          500: 'var(--wc-ink-500)',
+          600: 'var(--wc-ink-600)',
+          700: 'var(--wc-ink-700)',
+          850: 'var(--wc-ink-850)',
+          900: 'var(--wc-ink-900)',
+          950: 'var(--wc-ink-950)',
         },
         // semantic surface tokens
         surface: {
-          base: '#181818', // app background
-          raised: '#1e1e1e', // editor / main content
-          panel: '#252526', // sidebar / panel surfaces
-          overlay: '#2d2d2d', // hover / popover
-          inset: '#141414', // recessed / input fields
+          base: 'var(--wc-surface-base)',
+          raised: 'var(--wc-surface-raised)',
+          panel: 'var(--wc-surface-panel)',
+          overlay: 'var(--wc-surface-overlay)',
+          inset: 'var(--wc-surface-inset)',
         },
         border: {
-          subtle: '#2d2d2d', // hairline dividers
-          DEFAULT: '#333333', // standard borders
-          strong: '#3c3c3c', // emphasis borders
+          subtle: 'var(--wc-border-subtle)',
+          DEFAULT: 'var(--wc-border)',
+          strong: 'var(--wc-border-strong)',
         },
         accent: {
-          DEFAULT: '#3794ff', // VS Code blue — primary interactive
-          soft: '#0e639c',
-          glow: '#3794ff',
-          blue: '#3794ff',
+          DEFAULT: 'var(--wc-accent)',
+          soft: 'var(--wc-accent-soft)',
+          glow: 'var(--wc-accent)',
+          blue: 'var(--wc-accent)',
         },
-        // semantic edge colors (kept in sync with layout.ts edgeColor)
+        // semantic edge colors (same in both themes — they are meaning, not decor)
         edge: {
           call: '#3794ff',
-          data: '#c586c0', // VS Code purple for control-flow
-          event: '#6a9955', // VS Code green for strings/data
-          muted: '#3c3c3c',
+          data: '#c586c0',
+          event: '#6a9955',
+          muted: 'var(--wc-ink-500)',
         },
-        // state colors (VS Code palette)
-        danger: '#f48771',
-        warning: '#cca700',
-        success: '#6a9955',
+        danger: 'var(--wc-danger)',
+        warning: 'var(--wc-warning)',
+        success: 'var(--wc-success)',
       },
       fontFamily: {
         mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'],
