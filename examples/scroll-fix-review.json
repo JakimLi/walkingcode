@@ -1,0 +1,86 @@
+{
+  "$schema": "walkingcode.layered.v1",
+  "kind": "layered",
+  "schemaVersion": "v1",
+  "repo": "..",
+  "title": "CodeView Scroll Fix — Review Map",
+  "description": "Review map for the scroll fix (commit 4b980a9). Click each node to jump to the exact code. The fix ensures clicking a diagram node always scrolls the code editor to the highlighted range, even across different files.",
+  "meta": {
+    "generatedBy": "hand-written",
+    "generatedAt": "2026-07-27T00:00:00.000Z",
+    "reviewTarget": "commit 4b980a9 fix(codeview): ensure the code view scrolls to the node location on click"
+  },
+  "layers": [
+    {
+      "id": "problem",
+      "name": "The Problem",
+      "order": 0,
+      "description": "Why the code view didn't scroll to the node location.",
+      "modules": [
+        {
+          "id": "race",
+          "name": "The race condition",
+          "description": "revealRangeInCenter raced with @monaco-editor/react swapping the model + value on a file change.",
+          "location": { "file": "packages/app/src/renderer/src/components/CodeView.tsx", "startLine": 206, "endLine": 220, "symbol": "applyDecoration" }
+        }
+      ]
+    },
+    {
+      "id": "fix",
+      "name": "The Three Fixes",
+      "order": 1,
+      "description": "Three coordinated changes that guarantee the reveal.",
+      "modules": [
+        {
+          "id": "dual-reveal",
+          "name": "Dual reveal pass",
+          "description": "Reveal immediately (same-file case) + after a 60ms delay (cross-file case where model value isn't settled yet).",
+          "location": { "file": "packages/app/src/renderer/src/components/CodeView.tsx", "startLine": 211, "endLine": 219, "symbol": "applyDecoration.dual-reveal" },
+          "elements": [
+            {
+              "id": "immediate",
+              "name": "immediate revealRange()",
+              "kind": "function",
+              "description": "Works when the model is already populated (clicking another node in the same file).",
+              "location": { "file": "packages/app/src/renderer/src/components/CodeView.tsx", "startLine": 217, "endLine": 217, "symbol": "applyDecoration.immediate" }
+            },
+            {
+              "id": "delayed",
+              "name": "delayed revealRange()",
+              "kind": "function",
+              "description": "setTimeout 60ms — covers the cross-file case after @monaco-editor/react swaps the model.",
+              "location": { "file": "packages/app/src/renderer/src/components/CodeView.tsx", "startLine": 218, "endLine": 218, "symbol": "applyDecoration.delayed" }
+            }
+          ]
+        },
+        {
+          "id": "model-listener",
+          "name": "onDidChangeModel listener",
+          "description": "When the editor swaps its model (path changes), re-reveal after 50ms so the new file scrolls to the range too.",
+          "location": { "file": "packages/app/src/renderer/src/components/CodeView.tsx", "startLine": 179, "endLine": 186, "symbol": "handleMount.onDidChangeModel" }
+        },
+        {
+          "id": "helper",
+          "name": "revealRange() helper",
+          "description": "Safe wrapper: centers the line, try/catch guards against the model not being ready yet.",
+          "location": { "file": "packages/app/src/renderer/src/components/CodeView.tsx", "startLine": 301, "endLine": 313, "symbol": "revealRange" },
+          "elements": [
+            {
+              "id": "try-catch",
+              "name": "try/catch guard",
+              "kind": "handler",
+              "description": "If the model isn't ready, the delayed retry handles it instead of throwing.",
+              "location": { "file": "packages/app/src/renderer/src/components/CodeView.tsx", "startLine": 308, "endLine": 312, "symbol": "revealRange.catch" }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "edges": [
+    { "from": "problem/race", "to": "fix/dual-reveal", "label": "fixed by", "kind": "uses" },
+    { "from": "problem/race", "to": "fix/model-listener", "label": "fixed by", "kind": "uses" },
+    { "from": "fix/dual-reveal", "to": "fix/helper", "label": "calls", "kind": "call" },
+    { "from": "fix/model-listener", "to": "fix/helper", "label": "calls", "kind": "call" }
+  ]
+}
