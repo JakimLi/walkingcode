@@ -1,0 +1,133 @@
+{
+  "$schema": "walkingcode.layered.v1",
+  "kind": "layered",
+  "schemaVersion": "v1",
+  "repo": "..",
+  "title": "Multi-Window Support — Review Map",
+  "description": "Review map for the multi-window change (commit 5841ad3). Each `walkingcode open` now spawns an independent Electron process, so multiple arch files can be open at once. Click each node to jump to the exact code.",
+  "meta": {
+    "generatedBy": "hand-written",
+    "generatedAt": "2026-07-27T00:00:00.000Z",
+    "reviewTarget": "commit 5841ad3 feat: allow multiple arch files open simultaneously (multi-process)"
+  },
+  "layers": [
+    {
+      "id": "lock-removal",
+      "name": "Single-Instance Lock Removal",
+      "order": 0,
+      "description": "The Electron main process no longer holds a global lock — each open spawns its own process.",
+      "modules": [
+        {
+          "id": "main-entry",
+          "name": "index.ts — startup",
+          "description": "Removed requestSingleInstanceLock + second-instance handler. The app now goes straight to whenReady → initSession → createWindow. window-all-closed quits unconditionally (each process owns one window).",
+          "location": { "file": "packages/app/src/main/index.ts", "startLine": 151, "endLine": 176, "symbol": "app.whenReady" },
+          "elements": [
+            {
+              "id": "no-lock",
+              "name": "no single-instance lock",
+              "kind": "handler",
+              "description": "The comment documents the design: each open spawns its own process; sessions are process-private so no routing is needed.",
+              "location": { "file": "packages/app/src/main/index.ts", "startLine": 151, "endLine": 153, "symbol": "no-single-instance-lock" }
+            },
+            {
+              "id": "window-all-closed",
+              "name": "window-all-closed → quit",
+              "kind": "handler",
+              "description": "Now quits unconditionally (removed the darwin exception) — with no single-instance lock, there's no reason to keep the process alive on macOS.",
+              "location": { "file": "packages/app/src/main/index.ts", "startLine": 173, "endLine": 175, "symbol": "window-all-closed" }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pid-tracking",
+      "name": "Multi-PID Tracking",
+      "order": 1,
+      "description": "The CLI runtime switched from one PID file to a pids/ directory with one file per running process.",
+      "modules": [
+        {
+          "id": "runtime",
+          "name": "runtime.ts — PID store",
+          "description": "Replaced the single `pid` file with a `pids/` directory. Each process writes a file named by its PID; readLivePids() lists all alive processes and reaps stale entries.",
+          "location": { "file": "packages/cli/src/runtime.ts", "startLine": 14, "endLine": 69, "symbol": "PIDS_DIR" },
+          "elements": [
+            {
+              "id": "write-pid",
+              "name": "writePid(pid, archFile)",
+              "kind": "function",
+              "description": "Writes pids/<pid> containing the arch file path; also updates the advisory arch-file record.",
+              "location": { "file": "packages/cli/src/runtime.ts", "startLine": 32, "endLine": 37, "symbol": "writePid" }
+            },
+            {
+              "id": "read-live-pids",
+              "name": "readLivePids()",
+              "kind": "function",
+              "description": "Scans pids/, returns alive PidRecords, and cleans up dead entries as a side effect.",
+              "location": { "file": "packages/cli/src/runtime.ts", "startLine": 57, "endLine": 69, "symbol": "readLivePids" }
+            },
+            {
+              "id": "clear-all",
+              "name": "clearAllPids()",
+              "kind": "function",
+              "description": "Removes every PID file — used by close and open --force.",
+              "location": { "file": "packages/cli/src/runtime.ts", "startLine": 46, "endLine": 50, "symbol": "clearAllPids" }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cli-commands",
+      "name": "CLI Commands",
+      "order": 2,
+      "description": "open no longer refuses; close stops every instance.",
+      "modules": [
+        {
+          "id": "open-cmd",
+          "name": "open.ts — allow multi-open",
+          "description": "Removed the 'already running → exit(1)' guard. Every open spawns a new process and records its PID. --force now stops ALL instances first.",
+          "location": { "file": "packages/cli/src/commands/open.ts", "startLine": 47, "endLine": 70, "symbol": "registerOpen.action" },
+          "elements": [
+            {
+              "id": "force-all",
+              "name": "--force stops all",
+              "kind": "handler",
+              "description": "Reads readLivePids(), kills each, then clearAllPids() before spawning.",
+              "location": { "file": "packages/cli/src/commands/open.ts", "startLine": 51, "endLine": 59, "symbol": "open.force" }
+            },
+            {
+              "id": "spawn-new",
+              "name": "spawn + writePid",
+              "kind": "function",
+              "description": "Each open spawns its own electron process and records the PID — no guard, no refusal.",
+              "location": { "file": "packages/cli/src/commands/open.ts", "startLine": 106, "endLine": 125, "symbol": "open.spawn" }
+            }
+          ]
+        },
+        {
+          "id": "close-cmd",
+          "name": "close.ts — stop all instances",
+          "description": "Iterates readLivePids(), SIGTERMs each, escalates to SIGKILL with --force, then clears all records.",
+          "location": { "file": "packages/cli/src/commands/close.ts", "startLine": 17, "endLine": 56, "symbol": "registerClose.action" },
+          "elements": [
+            {
+              "id": "iterate-kill",
+              "name": "iterate + kill loop",
+              "kind": "handler",
+              "description": "For each live PID: SIGTERM, wait 2s, optionally SIGKILL, then clearPid.",
+              "location": { "file": "packages/cli/src/commands/close.ts", "startLine": 25, "endLine": 50, "symbol": "close.loop" }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "edges": [
+    { "from": "lock-removal/main-entry", "to": "cli-commands/open-cmd", "label": "no lock → multiple spawns", "kind": "event", "description": "Removing the lock is what allows open to spawn multiple processes." },
+    { "from": "pid-tracking/runtime", "to": "cli-commands/open-cmd", "label": "writePid / readLivePids", "kind": "uses", "description": "open writes a per-process PID; uses readLivePids for --force." },
+    { "from": "pid-tracking/runtime", "to": "cli-commands/close-cmd", "label": "readLivePids / clearAllPids", "kind": "uses", "description": "close reads all live PIDs to stop them." },
+    { "from": "cli-commands/open-cmd", "to": "lock-removal/main-entry", "label": "spawns electron", "kind": "call", "description": "open spawns electron which runs the no-lock startup in index.ts." }
+  ]
+}
