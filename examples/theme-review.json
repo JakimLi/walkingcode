@@ -1,0 +1,157 @@
+{
+  "$schema": "walkingcode.layered.v1",
+  "kind": "layered",
+  "schemaVersion": "v1",
+  "repo": "..",
+  "title": "Light Theme + Dark Contrast Fix — Review Map",
+  "description": "Review map for the theme system change. A light theme is now supported alongside dark, switchable from the toolbar. Dark-mode contrast was also improved. Click each node to jump to the exact code.",
+  "meta": {
+    "generatedBy": "hand-written",
+    "generatedAt": "2026-07-27T00:00:00.000Z",
+    "reviewTarget": "theme system — CSS variables + data-theme + Monaco dual themes + dark contrast fix"
+  },
+  "layers": [
+    {
+      "id": "mechanism",
+      "name": "Theme Mechanism",
+      "order": 0,
+      "description": "CSS variables driven by a data-theme attribute; the whole palette flips by changing one attribute.",
+      "modules": [
+        {
+          "id": "tailwind-config",
+          "name": "tailwind.config.js — tokens → CSS vars",
+          "description": "All color tokens now resolve to var(--wc-*) instead of hardcoded hex. Class names unchanged.",
+          "location": { "file": "packages/app/tailwind.config.js", "startLine": 13, "endLine": 60, "symbol": "colors" }
+        },
+        {
+          "id": "css-vars",
+          "name": "styles.css — two variable sets",
+          "description": "Defines --wc-* variables under [data-theme='dark'] and [data-theme='light']. Dark text/border values were lifted for contrast.",
+          "location": { "file": "packages/app/src/renderer/src/styles.css", "startLine": 10, "endLine": 97, "symbol": "theme-variables" },
+          "elements": [
+            {
+              "id": "dark-vars",
+              "name": "dark variables + contrast lift",
+              "kind": "type",
+              "description": "ink-200 #ccc→#d4d4d4, ink-300 #999→#b8b8b8, ink-400 #6e6e6e→#909090, borders lifted too.",
+              "location": { "file": "packages/app/src/renderer/src/styles.css", "startLine": 11, "endLine": 53, "symbol": "dark-vars" }
+            },
+            {
+              "id": "light-vars",
+              "name": "light variables",
+              "kind": "type",
+              "description": "Light surfaces (#f8f8f8/#fff), dark text (#333), softer shadows, lighter accent.",
+              "location": { "file": "packages/app/src/renderer/src/styles.css", "startLine": 55, "endLine": 97, "symbol": "light-vars" }
+            }
+          ]
+        },
+        {
+          "id": "theme-provider",
+          "name": "theme.tsx — ThemeProvider + useTheme",
+          "description": "React context holding the current theme + toggleTheme. Persists to localStorage; applies data-theme to <html>.",
+          "location": { "file": "packages/app/src/renderer/src/theme.tsx", "startLine": 37, "endLine": 55, "symbol": "ThemeProvider" },
+          "elements": [
+            {
+              "id": "read-initial",
+              "name": "readInitialTheme()",
+              "kind": "function",
+              "description": "Reads localStorage 'wc:theme' before React mounts; default dark.",
+              "location": { "file": "packages/app/src/renderer/src/theme.tsx", "startLine": 22, "endLine": 31, "symbol": "readInitialTheme" }
+            },
+            {
+              "id": "toggle",
+              "name": "toggleTheme()",
+              "kind": "function",
+              "description": "Flips dark↔light, triggers the useEffect that sets the attribute + persists.",
+              "location": { "file": "packages/app/src/renderer/src/theme.tsx", "startLine": 50, "endLine": 52, "symbol": "toggleTheme" }
+            }
+          ]
+        },
+        {
+          "id": "anti-flash",
+          "name": "index.html — anti-flash inline script",
+          "description": "Sets data-theme from localStorage before React mounts, avoiding a flash of wrong theme. CSP hash added to allow it.",
+          "location": { "file": "packages/app/src/renderer/index.html", "startLine": 15, "endLine": 23, "symbol": "anti-flash-script" }
+        }
+      ]
+    },
+    {
+      "id": "renderers",
+      "name": "Renderer Adaptation",
+      "order": 1,
+      "description": "Components that can't read CSS vars purely via Tailwind classes — Monaco, React Flow, edge labels.",
+      "modules": [
+        {
+          "id": "monaco",
+          "name": "CodeView.tsx — Monaco dual themes",
+          "description": "Defines walkingcode-dark + walkingcode-light; switches via setTheme on mount and when the theme changes.",
+          "location": { "file": "packages/app/src/renderer/src/components/CodeView.tsx", "startLine": 102, "endLine": 160, "symbol": "defineMonacoThemes" },
+          "elements": [
+            {
+              "id": "light-theme-def",
+              "name": "walkingcode-light theme",
+              "kind": "type",
+              "description": "White background, light syntax tokens (VS-style), light selection/guides.",
+              "location": { "file": "packages/app/src/renderer/src/components/CodeView.tsx", "startLine": 132, "endLine": 159, "symbol": "walkingcode-light" }
+            },
+            {
+              "id": "theme-effect",
+              "name": "theme switch effect",
+              "kind": "handler",
+              "description": "useEffect([theme]) calls monaco.editor.setTheme when the app theme changes at runtime.",
+              "location": { "file": "packages/app/src/renderer/src/components/CodeView.tsx", "startLine": 227, "endLine": 231, "symbol": "theme-effect" }
+            }
+          ]
+        },
+        {
+          "id": "react-flow",
+          "name": "DiagramView.tsx — RF colors from CSS vars",
+          "description": "Background dots, minimap node colors, mask, and stroke read from CSS vars via getComputedStyle. useTheme forces re-render on switch.",
+          "location": { "file": "packages/app/src/renderer/src/components/DiagramView.tsx", "startLine": 39, "endLine": 114, "symbol": "DiagramInner" }
+        },
+        {
+          "id": "edge-labels",
+          "name": "layout.ts — edge label colors",
+          "description": "Edge label fill + background now read --wc-edge-label / --wc-edge-label-bg via a cssVar() helper.",
+          "location": { "file": "packages/app/src/renderer/src/lib/layout.ts", "startLine": 246, "endLine": 247, "symbol": "edge-label-style" }
+        },
+        {
+          "id": "nodes",
+          "name": "Node components — shadow + hover",
+          "description": "ModuleNode/ParticipantNode shadow uses --wc-shadow; MessageNode hover uses surface-overlay instead of white overlay.",
+          "location": { "file": "packages/app/src/renderer/src/components/nodes/ModuleNode.tsx", "startLine": 29, "endLine": 29, "symbol": "ModuleNode.shadow" }
+        }
+      ]
+    },
+    {
+      "id": "entry",
+      "name": "Toggle Entry Point",
+      "order": 2,
+      "description": "The UI control and the app-level wiring.",
+      "modules": [
+        {
+          "id": "toolbar-toggle",
+          "name": "Toolbar.tsx — sun/moon toggle",
+          "description": "Icon button in the toolbar; calls toggleTheme(). Shows sun in dark mode, moon in light.",
+          "location": { "file": "packages/app/src/renderer/src/components/Toolbar.tsx", "startLine": 78, "endLine": 99, "symbol": "theme-toggle-button" }
+        },
+        {
+          "id": "main-wiring",
+          "name": "main.tsx — ThemeProvider wrapper",
+          "description": "Wraps <App> in <ThemeProvider> so useTheme is available everywhere.",
+          "location": { "file": "packages/app/src/renderer/src/main.tsx", "startLine": 5, "endLine": 15, "symbol": "main.render" }
+        }
+      ]
+    }
+  ],
+  "edges": [
+    { "from": "mechanism/tailwind-config", "to": "mechanism/css-vars", "label": "tokens reference", "kind": "uses", "description": "tailwind tokens resolve to the CSS vars defined in styles.css." },
+    { "from": "mechanism/theme-provider", "to": "mechanism/css-vars", "label": "sets data-theme", "kind": "event", "description": "ThemeProvider flips the attribute that switches the variable set." },
+    { "from": "mechanism/theme-provider", "to": "entry/main-wiring", "label": "wraps app", "kind": "uses", "description": "main.tsx wraps App in ThemeProvider." },
+    { "from": "entry/toolbar-toggle", "to": "mechanism/theme-provider", "label": "toggleTheme()", "kind": "call", "description": "The toolbar button calls the context's toggle." },
+    { "from": "renderers/monaco", "to": "mechanism/theme-provider", "label": "useTheme", "kind": "uses", "description": "CodeView reads the theme to pick the Monaco theme name." },
+    { "from": "renderers/react-flow", "to": "mechanism/theme-provider", "label": "useTheme re-render", "kind": "uses", "description": "DiagramView uses the theme to trigger re-reading CSS vars." },
+    { "from": "renderers/edge-labels", "to": "mechanism/css-vars", "label": "cssVar()", "kind": "uses", "description": "layout.ts reads the active var at render time." },
+    { "from": "mechanism/anti-flash", "to": "mechanism/css-vars", "label": "sets attribute early", "kind": "event", "description": "The inline script applies the theme before React, preventing a flash." }
+  ]
+}
