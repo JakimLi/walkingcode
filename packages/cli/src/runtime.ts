@@ -1,54 +1,83 @@
 /**
- * Per-user runtime dir + PID lock for the running GUI instance.
+ * Per-user runtime dir + multi-PID tracking for running GUI instances.
  *
  * Layout under `~/.walkingcode/`:
  *   runtime/
- *     pid          — PID of the currently running GUI process (or absent)
- *     arch-file    — absolute path of the arch file the GUI was launched with
- *     started-at   — ISO timestamp of last launch
+ *     pids/             — one file per running GUI process, named by PID
+ *       <pid>           — contains the arch file path the process was launched with
+ *     arch-file         — the most-recently-opened arch file (advisory, not a lock)
+ *
+ * Multiple arch files can be open at once — each `walkingcode open` spawns its
+ * own Electron process, recorded here as a separate PID file.
  */
 import { homedir } from 'node:os'
-import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync, rmSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync, readdirSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 
 export const RUNTIME_DIR = join(homedir(), '.walkingcode', 'runtime')
-const PID_FILE = join(RUNTIME_DIR, 'pid')
+const PIDS_DIR = join(RUNTIME_DIR, 'pids')
 const ARCH_FILE_RECORD = join(RUNTIME_DIR, 'arch-file')
-const STARTED_AT_FILE = join(RUNTIME_DIR, 'started-at')
 
 export function ensureRuntimeDir(): void {
-  if (!existsSync(RUNTIME_DIR)) mkdirSync(RUNTIME_DIR, { recursive: true })
+  if (!existsSync(PIDS_DIR)) mkdirSync(PIDS_DIR, { recursive: true })
 }
 
-/** Read the recorded PID of the running GUI, or null if none/missing. */
-export function readPid(): number | null {
-  if (!existsSync(PID_FILE)) return null
-  const raw = readFileSync(PID_FILE, 'utf8').trim()
-  const pid = Number(raw)
-  return Number.isFinite(pid) && pid > 0 ? pid : null
+/** A recorded running instance: its PID and the arch file it was launched with. */
+export interface PidRecord {
+  pid: number
+  archFile: string
 }
 
+/** Record a newly launched GUI process. Each process gets its own PID file. */
 export function writePid(pid: number, archFile: string): void {
   ensureRuntimeDir()
-  writeFileSync(PID_FILE, String(pid), 'utf8')
+  writeFileSync(join(PIDS_DIR, String(pid)), archFile, 'utf8')
+  // advisory: track the most-recently-opened file for status messages
   writeFileSync(ARCH_FILE_RECORD, archFile, 'utf8')
-  writeFileSync(STARTED_AT_FILE, new Date().toISOString(), 'utf8')
 }
 
-export function clearPid(): void {
-  for (const f of [PID_FILE, ARCH_FILE_RECORD, STARTED_AT_FILE]) {
-    if (existsSync(f)) unlinkSync(f)
+/** Remove a single PID's record (called after the process exits or is killed). */
+export function clearPid(pid: number): void {
+  const f = join(PIDS_DIR, String(pid))
+  if (existsSync(f)) unlinkSync(f)
+}
+
+/** Remove all PID records. */
+export function clearAllPids(): void {
+  if (!existsSync(PIDS_DIR)) return
+  for (const name of readdirSync(PIDS_DIR)) {
+    unlinkSync(join(PIDS_DIR, name))
   }
 }
 
+/**
+ * Read all recorded PIDs that are still alive. Dead ones are cleaned up as a
+ * side effect so the dir doesn't accumulate stale entries.
+ */
+export function readLivePids(): PidRecord[] {
+  if (!existsSync(PIDS_DIR)) return []
+  const records: PidRecord[] = []
+  for (const name of readdirSync(PIDS_DIR)) {
+    const pid = Number(name)
+    if (!Number.isFinite(pid) || pid <= 0) continue
+    if (!isPidAlive(pid)) {
+      clearPid(pid) // reap stale entry
+      continue
+    }
+    const archFile = readFileSync(join(PIDS_DIR, name), 'utf8').trim() || '(unknown)'
+    records.push({ pid, archFile })
+  }
+  return records
+}
+
+/** The most-recently-opened arch file (advisory, for status messages). */
 export function readArchFileRecord(): string | null {
   if (!existsSync(ARCH_FILE_RECORD)) return null
   return readFileSync(ARCH_FILE_RECORD, 'utf8').trim() || null
 }
 
 /**
- * Is the recorded PID still alive? Returns false if no PID recorded or the
- * process is gone. On macOS/Linux we use process.kill(pid, 0) to probe.
+ * Is a PID still alive? Uses process.kill(pid, 0) to probe.
  */
 export function isPidAlive(pid: number): boolean {
   try {
@@ -56,9 +85,7 @@ export function isPidAlive(pid: number): boolean {
     return true
   } catch (e) {
     const code = (e as NodeJS.ErrnoException).code
-    // EPERM: process exists but we can't signal it — still "alive" for our purposes
     if (code === 'EPERM') return true
-    // ESRCH: no such process
     return false
   }
 }

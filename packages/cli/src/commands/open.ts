@@ -13,12 +13,11 @@ import { existsSync, realpathSync } from 'node:fs'
 import { resolve, isAbsolute } from 'node:path'
 import { Command } from 'commander'
 import {
+  clearAllPids,
   clearPid,
   ensureRuntimeDir,
-  isPidAlive,
   killPid,
-  readArchFileRecord,
-  readPid,
+  readLivePids,
   writePid,
 } from '../runtime.js'
 import { APP_PKG_DIR, isNpxFallback, resolveElectron } from '../electron.js'
@@ -34,7 +33,7 @@ export function registerOpen(program: Command): void {
     .option('--foreground', 'Run electron in the foreground (attached) so errors print to the terminal. Use this if no window appears.')
     .option(
       '--force',
-      'Kill any leftover WalkingCode Electron process before launching (clears stale single-instance locks).'
+      'Kill all running WalkingCode instances before launching.'
     )
     .action(
       (archFileArg: string, opts: {
@@ -49,25 +48,14 @@ export function registerOpen(program: Command): void {
           fail(`Arch file not found: ${archFile}`)
         }
 
-        // already running?
-        const existingPid = readPid()
-        if (existingPid && isPidAlive(existingPid)) {
-          if (opts.force) {
-            console.log(`--force: stopping existing instance (pid ${existingPid})…`)
-            killPid(existingPid)
-            clearPid()
-          } else {
-            const existing = readArchFileRecord()
-            console.error(
-              `WalkingCode is already running (pid ${existingPid}) on ${existing ?? '(unknown file)'}.`
-            )
-            console.error(`Run \`walkingcode close\` first, or reuse the open window.`)
-            console.error(`(Use \`walkingcode open --force\` to replace it.)`)
-            process.exit(1)
+        // --force: stop every running instance first
+        if (opts.force) {
+          const live = readLivePids()
+          if (live.length > 0) {
+            console.log(`--force: stopping ${live.length} running instance(s)…`)
+            for (const r of live) killPid(r.pid)
+            clearAllPids()
           }
-        } else if (existingPid) {
-          // stale PID file — clear it
-          clearPid()
         }
 
       let target
@@ -117,7 +105,7 @@ export function registerOpen(program: Command): void {
         console.log(`  (Ctrl-C to quit)`)
         if (child.pid) writePid(child.pid, archFile)
         child.on('exit', (code) => {
-          clearPid()
+          if (child.pid) clearPid(child.pid)
           process.exit(code ?? 0)
         })
         return

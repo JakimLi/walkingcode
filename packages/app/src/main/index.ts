@@ -148,38 +148,29 @@ function createWindow(): BrowserWindow {
   return win
 }
 
-// single-instance lock — the CLI refuses a second `open` anyway, but be defensive
-const gotLock = app.requestSingleInstanceLock()
-log(`single-instance lock acquired: ${gotLock}`)
-if (!gotLock) {
-  log('another instance holds the lock — quitting')
+// No single-instance lock: each `walkingcode open <file>` spawns its own
+// process, so multiple arch files can be open simultaneously in isolated
+// windows. Each process owns its own session + preload.
+app.whenReady().then(() => {
+  log('app ready')
+  const args = parseLaunchArgs()
+  log(`parsed args: ${JSON.stringify(args)}`)
+  try {
+    initSession({ archFile: args.archFile, repoOverride: args.repo })
+    registerIpc(() => BrowserWindow.getFocusedWindow())
+    registerWindowControls()
+    createWindow()
+    log('createWindow returned')
+  } catch (e) {
+    log(`startup error: ${(e as Error).stack ?? String(e)}`)
+  }
+
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+  })
+})
+
+app.on('window-all-closed', () => {
+  log('window-all-closed')
   app.quit()
-} else {
-  app.on('second-instance', () => {
-    log('second-instance event received (ignored)')
-  })
-
-  app.whenReady().then(() => {
-    log('app ready')
-    const args = parseLaunchArgs()
-    log(`parsed args: ${JSON.stringify(args)}`)
-    try {
-      initSession({ archFile: args.archFile, repoOverride: args.repo })
-      registerIpc(() => BrowserWindow.getFocusedWindow())
-      registerWindowControls()
-      createWindow()
-      log('createWindow returned')
-    } catch (e) {
-      log(`startup error: ${(e as Error).stack ?? String(e)}`)
-    }
-
-    app.on('activate', () => {
-      if (BrowserWindow.getAllWindows().length === 0) createWindow()
-    })
-  })
-
-  app.on('window-all-closed', () => {
-    log('window-all-closed')
-    if (process.platform !== 'darwin') app.quit()
-  })
-}
+})

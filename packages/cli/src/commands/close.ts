@@ -1,51 +1,61 @@
 /**
- * `walkingcode close` — stop the running GUI.
+ * `walkingcode close` — stop all running GUI instances.
  *
- * Reads the recorded PID, SIGTERMs it, clears the lock. Idempotent: if nothing's
- * running, prints that and exits 0.
+ * Reads every recorded PID, SIGTERMs each, clears the records. Idempotent: if
+ * nothing's running, prints that and exits 0. `--force` escalates to SIGKILL
+ * for any that don't stop within the grace window.
  */
 import { Command } from 'commander'
-import { clearPid, isPidAlive, killPid, readPid } from '../runtime.js'
+import { clearAllPids, clearPid, isPidAlive, killPid, readLivePids } from '../runtime.js'
 
 export function registerClose(program: Command): void {
   program
     .command('close')
-    .description('Stop the running WalkingCode GUI, if any.')
-    .option('--force', 'Send SIGKILL if SIGTERM does not stop the process within 2s.')
+    .description('Stop all running WalkingCode GUI instances.')
+    .option('--force', 'Send SIGKILL to any instance that does not stop within 2s.')
     .action((opts: { force?: boolean }) => {
-      const pid = readPid()
-      if (!pid) {
+      const live = readLivePids()
+      if (live.length === 0) {
         console.log('No running WalkingCode GUI recorded.')
         return
       }
-      if (!isPidAlive(pid)) {
-        clearPid()
-        console.log(`Recorded PID ${pid} is not running; cleared the lock.`)
-        return
-      }
-      const ok = killPid(pid)
-      if (!ok) {
-        console.error(`Could not signal PID ${pid}.`)
-        process.exit(1)
-      }
-      // give it a moment; optionally escalate
-      const deadline = Date.now() + 2000
-      while (Date.now() < deadline && isPidAlive(pid)) {
-        // busy-wait briefly
-        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 100)
-      }
-      if (isPidAlive(pid) && opts.force) {
-        try {
-          process.kill(pid, 'SIGKILL')
-        } catch {
-          /* ignore */
+
+      let stopped = 0
+      let failed = 0
+      for (const r of live) {
+        if (!killPid(r.pid)) {
+          console.error(`Could not signal PID ${r.pid} (${r.archFile}).`)
+          failed++
+          continue
+        }
+        // grace window per process
+        const deadline = Date.now() + 2000
+        while (Date.now() < deadline && isPidAlive(r.pid)) {
+          Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 100)
+        }
+        if (isPidAlive(r.pid) && opts.force) {
+          try {
+            process.kill(r.pid, 'SIGKILL')
+          } catch {
+            /* ignore */
+          }
+        }
+        if (isPidAlive(r.pid)) {
+          console.error(`PID ${r.pid} did not stop (${r.archFile}).`)
+          failed++
+        } else {
+          console.log(`Stopped pid ${r.pid} (${r.archFile}).`)
+          stopped++
+          clearPid(r.pid)
         }
       }
-      if (isPidAlive(pid)) {
-        console.error(`PID ${pid} did not stop (use --force to escalate).`)
+
+      // clear anything left over (e.g. processes we couldn't signal)
+      clearAllPids()
+      if (failed > 0) {
+        console.error(`${failed} instance(s) could not be stopped.`)
         process.exit(1)
       }
-      clearPid()
-      console.log(`WalkingCode stopped (pid ${pid}).`)
+      console.log(`${stopped} instance(s) stopped.`)
     })
 }
