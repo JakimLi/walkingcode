@@ -175,6 +175,14 @@ export function CodeView({ selected, onCollapse, canCollapse = true }: CodeViewP
     })
     monaco.editor.setTheme('walkingcode-dark')
     applyDecoration()
+    // When @monaco-editor/react swaps the model (path changes), re-reveal the
+    // current range once the new model is attached. Without this, switching to a
+    // different file leaves the highlight wherever the old scroll position was.
+    ed.onDidChangeModel(() => {
+      if (state.range) {
+        window.setTimeout(() => revealRange(ed, state.range), 50)
+      }
+    })
   }
 
   // when text/range change, reveal + decorate
@@ -201,7 +209,13 @@ export function CodeView({ selected, onCollapse, canCollapse = true }: CodeViewP
           },
         },
       ])
-      ed.revealRangeInCenter(state.range)
+      // Reveal in two passes: immediately (works for same-file switches where the
+      // model is already populated) and after a short delay (covers the cross-file
+      // case where @monaco-editor/react swaps the model + value asynchronously and
+      // the line count isn't settled yet at the time of this call). Without the
+      // delayed pass, the highlight lands below the fold and the user sees no jump.
+      revealRange(ed, state.range)
+      window.setTimeout(() => revealRange(ed, state.range), 60)
       // also move cursor to the start of the range so keyboard scroll feels right
       ed.setPosition({ lineNumber: state.range.startLineNumber, column: 1 })
     }
@@ -281,6 +295,22 @@ export function CodeView({ selected, onCollapse, canCollapse = true }: CodeViewP
       </div>
     </div>
   )
+}
+
+/**
+ * Reveal a range so it's comfortably in view. If the model is tall enough, we
+ * center it; if it's short (or the range is near the top), `revealLineInCenter`
+ * would over-scroll, so fall back to `revealLineNearTop` for a gentler scroll.
+ */
+function revealRange(ed: MonacoEditor.IStandaloneCodeEditor, range: IRange): void {
+  try {
+    const model = ed.getModel()
+    if (model && model.getLineCount() > 0) {
+      ed.revealLineInCenter(range.startLineNumber)
+    }
+  } catch {
+    /* editor/model not ready — the delayed retry will handle it */
+  }
 }
 
 function EmptyHint(): React.JSX.Element {
